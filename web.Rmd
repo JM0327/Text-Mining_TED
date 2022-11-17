@@ -1,0 +1,70 @@
+---
+title: "web"
+author: "Jiaming"
+date: "2022-11-17"
+output: html_document
+---
+
+```{r,include=FALSE}
+source(here::here("scripts/setup.R"))
+```
+
+```{r}
+rD <- rsDriver(browser="chrome", port=454L, verbose=F)
+
+remDr <- rD$client
+url <- "https://www.bbc.co.uk/learningenglish/english/features/6-minute-english"
+remDr$navigate(url)
+
+html_page <- remDr$getPageSource()[[1]]
+```
+
+```{r}
+#capture all article titles
+title <- read_html(html_page) %>% 
+  html_nodes(".widget-progress-enabled a") %>% 
+  html_text() %>%
+  as.data.frame() %>%
+  filter(. != "")
+names(title) <- "title_name"
+```
+
+```{r}
+for (i in title){
+  
+
+}
+```
+
+
+```{r}
+#click to open every article
+remDr$findElement(using = 'link text', title[1,1])$clickElement()
+
+# capture the text in each article
+sub_page <- remDr$getPageSource()[[1]]
+
+sub_page_title <- read_html(sub_page) %>% 
+  html_nodes("#heading-qatars-world-cup-workers h3") %>% 
+  html_text() 
+
+sub_page_time <- read_html(sub_page) %>% 
+  html_nodes(".text .details h3") %>% 
+  html_text() 
+
+sub_page_text <- read_html(sub_page) %>% 
+  html_nodes(".text p , strong") %>% 
+  html_text() 
+
+remDr$goBack()
+```
+
+
+
+```{r, include=FALSE}
+# remDr$closeServer()
+# remDr$close()
+# rm(remDr)
+# rm(rD)
+# gc()
+```
