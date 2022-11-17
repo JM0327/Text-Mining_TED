@@ -31,8 +31,7 @@ names(title) <- "title_name"
 
 ```{r}
 for (i in title){
-  
-
+  break
 }
 ```
 
@@ -62,9 +61,9 @@ remDr$goBack()
 
 
 ```{r, include=FALSE}
-# remDr$closeServer()
-# remDr$close()
-# rm(remDr)
-# rm(rD)
-# gc()
+remDr$closeServer()
+remDr$close()
+rm(remDr)
+rm(rD)
+gc()
 ```
