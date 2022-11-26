@@ -9,8 +9,8 @@ output: html_document
 source(here::here("scripts/setup.R"))
 ```
 
-```{r}
-rD <- rsDriver(browser="chrome", port=454L, verbose=F)
+```{r bbc web}
+rD <- rsDriver(browser="chrome", port=4547L, verbose=F)
 
 remDr <- rD$client
 url <- "https://www.bbc.co.uk/learningenglish/english/features/6-minute-english"
@@ -29,33 +29,105 @@ title <- read_html(html_page) %>%
 names(title) <- "title_name"
 ```
 
+```{r youtube bbc}
+
+url <- "https://www.youtube.com/@bbclearningenglish/featured"
+remDr$navigate(url)
+
+html_page <- remDr$getPageSource()[[1]]
+```
+
 ```{r}
-for (i in title){
-  break
-}
+#accept cookies
+remDr$findElement(using = 'xpath', '//*[@id="yDmH0d"]/c-wiz/div/div/div/div[2]/div[1]/div[3]/div[1]/form[2]/div/div/button/span')$clickElement()
 ```
 
 
 ```{r}
-#click to open every article
-remDr$findElement(using = 'link text', title[1,1])$clickElement()
+sub_page_title <- as.character()
+posting_time <- as.character()
+views_times <- as.character()
+transcrip_text <- as.character()
+
+#n<- length(title[,1])
+
+n<-10
+
+for (i in 1:n) {
+#search article titles
+search_icon <- remDr$findElement(using = 'xpath', '//*[contains(concat( " ", @class, " " ), concat( " ", "ytd-expandable-tab-renderer", " " ))]')
+search_icon$clickElement()
+
+search_box <- remDr$findElement(using = 'xpath', '//*[@id="input-1"]/input')
+search_box$clickElement()
+
+search_box$clearElement()
+search_box$sendKeysToElement(list(title[i,1], key = "enter"))
+
+Sys.sleep(2)
+
+#click the first search output
+remDr$findElement(using = 'xpath', '//*[@id="video-title"]/yt-formatted-string')$clickElement()
+Sys.sleep(2)
+
+# go into the certain video
+#click expan to read more video infos
+remDr$findElement(using = 'xpath', '//*[@id="expand"]')$clickElement()
+Sys.sleep(1)
+
+#open subtitle to be ready to read all infos
+subtitle_dropdown <- remDr$findElement(using = 'xpath', '//*[@id="button-shape"]/button/yt-touch-feedback-shape/div/div[2]')
+
+remDr$mouseMoveToLocation(webElement = subtitle_dropdown)
+remDr$click(2)
+Sys.sleep(10)
+
+remDr$findElement(using = 'xpath', '//*[@id="items"]/ytd-menu-service-item-renderer/tp-yt-paper-item')$clickElement()
+Sys.sleep(2)
 
 # capture the text in each article
 sub_page <- remDr$getPageSource()[[1]]
 
 sub_page_title <- read_html(sub_page) %>% 
-  html_nodes("#heading-qatars-world-cup-workers h3") %>% 
+  html_nodes(xpath = "//*[@id='title']/h1/yt-formatted-string") %>% 
   html_text() 
 
-sub_page_time <- read_html(sub_page) %>% 
-  html_nodes(".text .details h3") %>% 
+posting_time <- read_html(sub_page) %>% 
+  html_nodes(xpath ="//*[@id='info']/span[3]") %>% 
   html_text() 
 
-sub_page_text <- read_html(sub_page) %>% 
-  html_nodes(".text p , strong") %>% 
+views_times <- read_html(sub_page) %>% 
+  html_nodes(xpath ="//*[@id='info']/span[1]") %>% 
   html_text() 
+
+transcrip_text <- read_html(sub_page) %>% 
+  html_nodes(xpath ="//*[@id='content']/ytd-transcript-search-panel-renderer") %>% 
+  html_text() 
+#transcrip_text <- transcrip_text[2]
 
 remDr$goBack()
+
+sub_page_title <- append(sub_page_title,sub_page_title)
+posting_time <-  append(posting_time,posting_time)
+views_times <-  append(views_times,views_times)
+transcrip_text <-  append(transcrip_text,transcrip_text)
+
+}
+```
+
+```{r}
+#group all infos into one dataframe
+
+six_mins <- data.frame(
+  
+  "title" = title[1:n,1],
+  "title in youtube" = sub_page_title,
+  "posting time" = posting_time,
+  "views time" = views_times,
+  "text" = transcrip_text
+  
+)
+
 ```
 
 
