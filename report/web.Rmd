@@ -10,125 +10,186 @@ source(here::here("scripts/setup.R"))
 ```
 
 ```{r bbc web}
-rD <- rsDriver(browser="chrome", port=4547L, verbose=F)
+rD <- rsDriver(browser="chrome", port=444L, verbose=F)
 
 remDr <- rD$client
-url <- "https://www.bbc.co.uk/learningenglish/english/features/6-minute-english"
+url <- "https://www.ted.com/"
 remDr$navigate(url)
+remDr$maxWindowSize()
 
 html_page <- remDr$getPageSource()[[1]]
 ```
 
-```{r}
-#capture all article titles
-title <- read_html(html_page) %>% 
-  html_nodes(".widget-progress-enabled a") %>% 
-  html_text() %>%
-  as.data.frame() %>%
-  filter(. != "")
-names(title) <- "title_name"
-```
-
-```{r youtube bbc}
-
-url <- "https://www.youtube.com/@bbclearningenglish/featured"
-remDr$navigate(url)
-
-html_page <- remDr$getPageSource()[[1]]
-```
 
 ```{r}
-#accept cookies
-remDr$findElement(using = 'xpath', '//*[@id="yDmH0d"]/c-wiz/div/div/div/div[2]/div[1]/div[3]/div[1]/form[2]/div/div/button/span')$clickElement()
-```
-
-
-```{r}
-sub_page_title <- as.character()
-posting_time <- as.character()
-views_times <- as.character()
-transcrip_text <- as.character()
-
-#n<- length(title[,1])
-
-n<-10
-
-for (i in 1:n) {
-#search article titles
-search_icon <- remDr$findElement(using = 'xpath', '//*[contains(concat( " ", @class, " " ), concat( " ", "ytd-expandable-tab-renderer", " " ))]')
-search_icon$clickElement()
-
-search_box <- remDr$findElement(using = 'xpath', '//*[@id="input-1"]/input')
-search_box$clickElement()
-
-search_box$clearElement()
-search_box$sendKeysToElement(list(title[i,1], key = "enter"))
-
+# go to TED talk
+drop_down <- remDr$findElement(using = 'xpath', '//*[@id="menu-button--0"]/div')
+remDr$mouseMoveToLocation(webElement=drop_down)
+remDr$findElement(using = 'xpath', '//*[@id="option-0--0"]/div[1]')$clickElement()
 Sys.sleep(2)
 
-#click the first search output
-remDr$findElement(using = 'xpath', '//*[@id="video-title"]/yt-formatted-string')$clickElement()
-Sys.sleep(2)
-
-# go into the certain video
-#click expan to read more video infos
-remDr$findElement(using = 'xpath', '//*[@id="expand"]')$clickElement()
-Sys.sleep(1)
-
-#open subtitle to be ready to read all infos
-subtitle_dropdown <- remDr$findElement(using = 'xpath', '//*[@id="button-shape"]/button/yt-touch-feedback-shape/div/div[2]')
-
-remDr$mouseMoveToLocation(webElement = subtitle_dropdown)
+# select lanuage to english
+drop_down <- remDr$findElement(using = 'xpath', '//*[@id="languages"]')
+remDr$mouseMoveToLocation(webElement=drop_down)
 remDr$click(2)
-Sys.sleep(10)
-
-remDr$findElement(using = 'xpath', '//*[@id="items"]/ytd-menu-service-item-renderer/tp-yt-paper-item')$clickElement()
+remDr$findElement(using = "xpath", '//*[@id="languages"]/optgroup/option[1]')$clickElement()
 Sys.sleep(2)
 
-# capture the text in each article
-sub_page <- remDr$getPageSource()[[1]]
+# select duration as 6-12 mins
+drop_down <- remDr$findElement(using = 'xpath', '//*[@id="filters"]/div[1]/div/div[2]/div[1]/div[1]/div/div[2]/div/div[3]/select')
+remDr$mouseMoveToLocation(webElement=drop_down)
+remDr$click(2)
+remDr$findElement(using = "xpath", '//*[@id="filters"]/div[1]/div/div[2]/div[1]/div[1]/div/div[2]/div/div[3]/select/option[3]')$clickElement()
+Sys.sleep(2)
 
-sub_page_title <- read_html(sub_page) %>% 
-  html_nodes(xpath = "//*[@id='title']/h1/yt-formatted-string") %>% 
-  html_text() 
+# select sort by the most viewed
+drop_down <- remDr$findElement(using = 'xpath', '//*[@id="filters-sort"]')
+remDr$mouseMoveToLocation(webElement=drop_down)
+remDr$click(2)
+remDr$findElement(using = "xpath", '//*[@id="filters-sort"]/optgroup/option[4]')$clickElement()
 
-posting_time <- read_html(sub_page) %>% 
-  html_nodes(xpath ="//*[@id='info']/span[3]") %>% 
-  html_text() 
+```
 
-views_times <- read_html(sub_page) %>% 
-  html_nodes(xpath ="//*[@id='info']/span[1]") %>% 
-  html_text() 
 
-transcrip_text <- read_html(sub_page) %>% 
-  html_nodes(xpath ="//*[@id='content']/ytd-transcript-search-panel-renderer") %>% 
-  html_text() 
-#transcrip_text <- transcrip_text[2]
+```{r}
+# first crawl all videos' titles on the first page
+html_page <- remDr$getPageSource()[[1]]
 
-remDr$goBack()
+page <- 2
 
-sub_page_title <- append(sub_page_title,sub_page_title)
-posting_time <-  append(posting_time,posting_time)
-views_times <-  append(views_times,views_times)
-transcrip_text <-  append(transcrip_text,transcrip_text)
+title <- as.character()
+speaker <- as.character()
+views_times <- as.character()
+page_num <- as.character()
+
+for (i in 1:page) {
+  
+  page_title <- read_html(html_page) %>% 
+    html_nodes(xpath = "//*[@id='browse-results']/div[1]/div/div/div/div/div[2]/h4[2]/a") %>% 
+    html_text() 
+  page_title <- gsub("\n","", page_title)
+  #there are 36 videos in one page
+  
+  page_speaker <- read_html(html_page) %>% 
+    html_nodes(xpath = "//*[@id='browse-results']/div[1]/div/div/div/div/div[2]/h4[1]") %>% 
+    html_text() 
+  
+  page_views_times <- read_html(html_page) %>% 
+    html_nodes(xpath = "//*[@id='browse-results']/div[1]/div/div/div/div/div[2]/div/span/span") %>% 
+    html_text() 
+  page_views_times <- gsub("\n","", page_views_times)
+  
+  page_page <- rep(i, times=length(page_title))
+  
+  next_page <- remDr$findElement(using = 'xpath', '//*[@id="browse-results"]/div[2]/div/a[6]')
+  remDr$mouseMoveToLocation(webElement=next_page)
+  remDr$click(2)
+  Sys.sleep(5)
+  
+  html_page <- remDr$getPageSource()[[1]]
+  
+  title <- append(title, page_title)
+  speaker <- append(speaker, page_speaker)
+  views_times <- append(views_times, page_views_times)
+  page_num <- append(page_num, page_page)
 
 }
+
+browse_result <- data.frame(
+  "page" = page_num,
+  "title" = title,
+  "speaker" = speaker,
+  "views_times" = views_times
+)
+
+first_page <- remDr$findElement(using = 'xpath', '//*[@id="browse-results"]/div[2]/div/a[2]')
+  remDr$mouseMoveToLocation(webElement=first_page)
+  remDr$click(2)
+  Sys.sleep(3)
+html_page <- remDr$getPageSource()[[1]]
+
 ```
 
 ```{r}
-#group all infos into one dataframe
+#click in each video to capture infos
 
-six_mins <- data.frame(
+introduction <- as.character()
+likes <- as.character()
+tanscript <- as.character()
+title_re <- as.character()
+
+for ( num in 1:page) {
   
-  "title" = title[1:n,1],
-  "title in youtube" = sub_page_title,
-  "posting time" = posting_time,
-  "views time" = views_times,
-  "text" = transcrip_text
+  sub_browse_result <- browse_result %>% filter(page_num == num)
+  n <- length(sub_browse_result$title)
   
+  for (i in 1:n) {
+    
+    Sys.sleep(2)
+    
+    # click in the video
+    video_page <- remDr$findElement(using = 'partial link text', sub_browse_result$title[i])
+    remDr$mouseMoveToLocation(webElement=video_page)
+    remDr$click(2)
+    Sys.sleep(10)
+    
+    video_title <- sub_browse_result$title[i]
+    
+    # open transcript
+    drop_down <- remDr$findElement(using = 'xpath', "//*[@id='maincontent']/div/div/div/div/div[2]/div[3]/div[2]/button")
+    remDr$mouseMoveToLocation(webElement=drop_down)
+    remDr$click(2)
+    Sys.sleep(5)
+    
+    # begin to crawl infos
+    html_page <- remDr$getPageSource()[[1]]
+    
+    video_sum <- read_html(html_page) %>% 
+      html_nodes(xpath = "//*[@id='maincontent']/div/div/div/div/div[2]/div[3]/div[1]/div[2]/div/div") %>% 
+      html_text() 
+    video_sum <- video_sum[1]
+    Sys.sleep(3)
+    
+    video_likes <- read_html(html_page) %>% 
+      html_nodes(xpath = "//*[@id='maincontent']/div/div/div/div/div[2]/div[1]/div[3]/button[1]/div/div/span") %>% html_text() 
+    Sys.sleep(3)
+    
+    video_tanscript <- read_html(html_page) %>% 
+      html_nodes(xpath = "//*[@id='maincontent']/div/div/div/aside/div[2]/div[2]/div/div/div[1]/div[3]") %>%
+      html_text() 
+    Sys.sleep(3)
+    
+    remDr$goBack()
+    Sys.sleep(5)
+    
+    introduction <- append(introduction, video_sum)
+    likes <- append(likes,video_likes)
+    tanscript <- append(tanscript, video_tanscript)
+    title_re <- append(title_re, video_title)
+  
+  }
+  
+  next_page <- remDr$findElement(using = 'xpath', '//*[@id="browse-results"]/div[2]/div/a[6]')
+  remDr$mouseMoveToLocation(webElement=next_page)
+  remDr$click(2)
+  Sys.sleep(5)
+  
+}
+
+video_info <- data.frame(
+  
+  "title" = title_re,
+  "introduction" = introduction,
+  "likes" = likes,
+  "tanscript" = tanscript
 )
-
 ```
+
+
+```{r}
+TED <- left_join(browse_result, video_info, by="title")
+```
+
 
 
 
