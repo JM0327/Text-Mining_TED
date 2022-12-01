@@ -33,20 +33,34 @@ drop_down <- remDr$findElement(using = 'xpath', '//*[@id="languages"]')
 remDr$mouseMoveToLocation(webElement=drop_down)
 remDr$click(2)
 remDr$findElement(using = "xpath", '//*[@id="languages"]/optgroup/option[1]')$clickElement()
-Sys.sleep(2)
+Sys.sleep(1)
+
+
+# select topic 
+drop_down <- remDr$findElement(using = 'xpath', '//*[@id="topics"]')
+remDr$mouseMoveToLocation(webElement=drop_down)
+remDr$click(2)
+remDr$findElement(using = "xpath", '//*[@id="topics"]/option[3]')$clickElement()
+remDr$findElement(using = "xpath", '/html/body/div[4]/div[2]/div/div/div/div[3]/ul[1]/li[1]/a')$clickElement()
+# if you want to change the capital of title, change the number in: [?]/a of the xpath
+topic <- remDr$findElement(using = "partial link text", 'AI')  ## put topic name here
+remDr$mouseMoveToLocation(webElement=topic)
+remDr$click(2)
+Sys.sleep(1)
+
 
 # select duration as 6-12 mins
 drop_down <- remDr$findElement(using = 'xpath', '//*[@id="filters"]/div[1]/div/div[2]/div[1]/div[1]/div/div[2]/div/div[3]/select')
 remDr$mouseMoveToLocation(webElement=drop_down)
 remDr$click(2)
 remDr$findElement(using = "xpath", '//*[@id="filters"]/div[1]/div/div[2]/div[1]/div[1]/div/div[2]/div/div[3]/select/option[3]')$clickElement()
-Sys.sleep(2)
+Sys.sleep(1)
 
 # select sort by the most viewed
 drop_down <- remDr$findElement(using = 'xpath', '//*[@id="filters-sort"]')
 remDr$mouseMoveToLocation(webElement=drop_down)
 remDr$click(2)
-remDr$findElement(using = "xpath", '//*[@id="filters-sort"]/optgroup/option[4]')$clickElement()
+remDr$findElement(using = "xpath", '//*[@id="filters-sort"]/optgroup/option[2]')$clickElement()
 
 ```
 
@@ -81,7 +95,7 @@ for (i in 1:page) {
   
   page_page <- rep(i, times=length(page_title))
   
-  next_page <- remDr$findElement(using = 'xpath', '//*[@id="browse-results"]/div[2]/div/a[6]')
+  next_page <- remDr$findElement(using = 'css', '.pagination__flipper.pagination__link')
   remDr$mouseMoveToLocation(webElement=next_page)
   remDr$click(2)
   Sys.sleep(5)
@@ -102,11 +116,11 @@ browse_result <- data.frame(
   "views_times" = views_times
 )
 
-first_page <- remDr$findElement(using = 'xpath', '//*[@id="browse-results"]/div[2]/div/a[2]')
-  remDr$mouseMoveToLocation(webElement=first_page)
-  remDr$click(2)
-  Sys.sleep(3)
-html_page <- remDr$getPageSource()[[1]]
+# first_page <- remDr$findElement(using = 'xpath', '//*[@id="browse-results"]/div[2]/div/a[2]')
+#   remDr$mouseMoveToLocation(webElement=first_page)
+#   remDr$click(2)
+#   Sys.sleep(3)
+# html_page <- remDr$getPageSource()[[1]]
 
 ```
 
@@ -124,8 +138,6 @@ for ( num in 1:page) {
   n <- length(sub_browse_result$title)
   
   for (i in 1:n) {
-    
-    Sys.sleep(2)
     
     # click in the video
     video_page <- remDr$findElement(using = 'partial link text', sub_browse_result$title[i])
