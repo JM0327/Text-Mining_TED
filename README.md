@@ -1,2 +1,2 @@
-# TM_BBC_sixmins
+# TM_TED
  text mining project
