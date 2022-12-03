@@ -66,7 +66,7 @@ remDr$findElement(using = "xpath", '//*[@id="filters-sort"]/optgroup/option[2]')
 
 
 ```{r}
-waitforscrape <- title %>% filter(!title %in% TED$title)
+#waitforscrape <- title %>% filter(!title %in% TED_2$title)
 ```
 
 
@@ -121,7 +121,8 @@ browse_result <- data.frame(
   "page" = page_num,
   "title" = title,
   "speaker" = speaker,
-  "views_times" = views_times
+  "views_times" = views_times,
+  "cate" = "Relationships"
 )
 
 # first_page <- remDr$findElement(using = 'xpath', '//*[@id="browse-results"]/div[2]/div/a[2]')
@@ -130,6 +131,11 @@ browse_result <- data.frame(
 #   Sys.sleep(3)
 # html_page <- remDr$getPageSource()[[1]]
 
+```
+
+```{r}
+
+test <- title %>% merge(title_all, by="title")
 ```
 
 
@@ -212,11 +218,12 @@ video_info <- data.frame(
 
 
 ```{r}
-TED_2 <- left_join(browse_result_all, video_info, by="title") %>% filter(!is.na(likes)) %>% rbind(TED)
+TED <- left_join(title_all, TED_3, by="title")
 ```
 
+
 ```{r}
-fwrite(TED, file = here::here("data/TED_2.csv"))
+fwrite(TED, file = here::here("data/TED.csv"))
 ```
 
 
