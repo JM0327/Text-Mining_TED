@@ -4,8 +4,9 @@
 
 # load the required packages
 packages <- c(
-  "knitr","dplyr",
-  "rvest", "RSelenium" #for map
+  "knitr","dplyr", "quanteda", "tokenizers", "quanteda.textstats", "lexicon",
+  "tidytext", "bpa",
+  "rvest", "RSelenium", "readr", "kableExtra", "lubridate", "stringr" #for map
 )
 
 if (!require("Require")) install.packages("Require")

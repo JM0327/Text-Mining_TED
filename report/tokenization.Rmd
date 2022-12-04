@@ -1,0 +1,189 @@
+---
+title: "Tokenization"
+author: "Manunpat"
+date: "2022-12-03"
+output: html_document
+---
+
+```{r,include=FALSE}
+source(here::here("scripts/setup.R"))
+```
+
+# Cleanning and parsing data
+....
+Unfortunately, we found 34 videos in total do not have information in transcript. One video is from AI while 22 videos and 11 videos are from Climate change and Relationships categories, respectively. 
+....
+```{r}
+# Import and clean data
+TED <- read_csv(here::here("data/TED.csv"))
+TED <- TED %>% as_tibble(data.frame(TED)) %>%
+  select(views_times.x, cate, likes, tanscript)
+colnames(TED)[1] <- "posted"
+checkna <- TED[is.na(TED$tanscript), ]
+
+# Identify NA and remove
+# numtotal <- data.frame(table(TED$cate))
+# numna <- data.frame(table(checkna$cate))
+# diff <- numtotal %>% left_join(numna, by = "Var1") %>%
+#   mutate(diff = Freq.x-Freq.y)
+TED <- na.omit(TED)
+
+# Parse data
+TED$posted <- my(TED$posted)
+TED$cate[which(TED$cate=="AI")] <- "1"
+TED$cate[which(TED$cate=="Climate change")] <- "2"
+TED$cate[which(TED$cate=="Relationships")] <- "3"
+TED$likes <- gsub("[(]",'',TED$likes)
+TED$likes <- gsub("[)]",'',TED$likes)
+x <- substr(TED$likes[1],1,1)
+TED$likes <- gsub(x,'',TED$likes)
+TED$likes <- gsub("K", "e3", TED$likes)
+TED$likes <- gsub("M", "e6", TED$likes)
+TED$likes <- as.numeric(TED$likes)
+
+# Clean transcript
+TED$tanscript <- gsub("^.+?00:(.*)","\\1",TED$tanscript)
+TED$tanscript <- gsub("\r\n"," ",TED$tanscript)
+TED$tanscript <- gsub("[[:digit:]]"," ",TED$tanscript)
+
+# Increase the number of instances: 20 sentences = 1 instance
+TED_full <- TED[0,]
+TED_full$subcate <- TED_full$cate #new col but same type
+TED_full$text <- TED_full$cate
+n_transcript <- length(TED$tanscript)
+
+sub_cate_1 = 0
+sub_cate_2 = 0
+sub_cate_3 = 0
+
+for (i in 1:n_transcript) {
+  
+  if (TED$cate[i] == "1") {
+    sub_cate_1 <- sub_cate_1 + 1
+    subcat_temp =  paste(TED$cate[i],".",as.character(sub_cate_1), sep = "", collapse = "")
+  } 
+  else if (TED$cate[i] == "2") {
+    sub_cate_2 <- sub_cate_2 + 1
+    subcat_temp =  paste(TED$cate[i],".",as.character(sub_cate_2), sep = "", collapse = "")
+  }
+  else {
+    sub_cate_3 <- sub_cate_3 + 1
+    subcat_temp =  paste(TED$cate[i],".",as.character(sub_cate_3), sep = "", collapse = "")
+  }
+   
+  transcript_i <- TED$tanscript[i]
+  transcript_i_sentence <- unlist(tokenize_sentence(transcript_i))
+  n_sen <- length(transcript_i_sentence)
+  n_group <- ceiling(n_sen/20)
+  for (j in 1:n_group) {
+    if (j == n_group) {
+      sentence_temp <- paste(transcript_i_sentence[((j-1)*20+1):(n_sen)], collapse = " ")
+    } 
+    else {
+      sentence_temp <- paste(transcript_i_sentence[((j-1)*20+1):(j*20)], collapse = " ")
+    }
+    
+    text_temp = paste(subcat_temp,".",as.character(j), sep = "", collapse = "")
+    TED_temp <- data.frame(posted = TED$posted[i], cate = TED$cate[i], like = TED$likes[i], subcate = subcat_temp, text = text_temp, tanscript = sentence_temp)
+    TED_full <- rbind(TED_full, TED_temp)
+  }
+    
+}
+
+TED_full$tanscript <- trim_ws(TED_full$tanscript)
+
+# Our final table = TED_full consisting of 1524 instances
+
+# kable(TED[, ], caption = "The original TED table") %>%
+#   kable_styling(bootstrap_options = "bordered") %>%
+#   kableExtra::scroll_box(width = "100%", height = "250px")  
+
+```
+
+# Tokenization
+
+I aim to create DTM, TFIDF tables by quanteda package. However, I also token TED_full by tidytext as well 
+```{r}
+# Quanteda
+TED.cp <- corpus(TED_full$tanscript)
+summary(TED.cp)
+
+TED.tk <- tokens(
+  TED.cp, 
+  remove_numbers = TRUE, 
+  remove_punct = TRUE, 
+  remove_symbols = TRUE, 
+  remove_separators = TRUE)
+
+TED.tk <- TED.tk %>% 
+  tokens_tolower() %>% 
+  tokens_remove(stopwords()) %>% 
+  tokens_remove("applaud") %>%
+  tokens_remove("laugther")
+
+TED.tk <- tokens_replace(
+  TED.tk,
+  pattern = hash_lemmas$token, 
+  replacement = hash_lemmas$lemma)
+
+TED.tk
+
+```
+
+```{r}
+# Tidytext
+# TED.tb <- TED_full %>% select(text, tanscript)
+# TED.tb <- as_tibble(data.frame(TED.tb))
+# 
+# TED.tok <- unnest_tokens(
+#   tbl = TED.tb, 
+#   output = "word", #column name we want to have
+#   input = "tanscript", #column name
+#   to_lower = TRUE,
+#   strip_punct = TRUE,  
+#   strip_numeric = TRUE) 
+# 
+# head(TED.tok, 10)
+
+```
+
+# DTM
+
+```{r}
+TED.dfm <- dfm(TED.tk)
+head(TED.dfm)
+```
+
+```{r}
+TED.freq <- textstat_frequency(TED.dfm)
+head(TED.freq, 20)
+```
+
+# TF-IDF
+
+```{r}
+# Quenteda
+TED.tfidf <- dfm_tfidf(TED.dfm)  
+sort(apply(TED.tfidf, 2, max), decreasing = TRUE)[1:10]
+
+# Tidytext
+# TED.fr <- TED.tok %>% 
+#   group_by(text, word) %>% 
+#   summarize(n = n()) %>% 
+#   arrange(desc(n))
+
+# TED.tfidf_tidy <- TED.fr %>%  
+#   bind_tf_idf(term = word,
+#               document = text,
+#               n = n) %>%
+#   arrange(desc(n))
+# head(TED.tfidf_tidy, n = 100) %>% flextable() %>% autofit()
+# 
+# head(bind_tf_idf(
+#   tbl = TED.fr,
+#   term = word,
+#   document = Document,
+#   n = n))
+
+```
+
