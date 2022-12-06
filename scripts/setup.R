@@ -7,7 +7,8 @@ packages <- c(
   "knitr","dplyr", "quanteda", "tokenizers", "quanteda.textstats", "lexicon",
   "topicmodels","topicdoc",
   "tidytext", "bpa", "quanteda.textmodels","ggplot2",
-  "rvest", "RSelenium", "readr", "kableExtra", "lubridate", "stringr" #for map
+  "rvest", "RSelenium", "readr", "kableExtra", "lubridate", "stringr", #for map
+  "ranger","caret"
 )
 
 if (!require("Require")) install.packages("Require")
