@@ -1,0 +1,175 @@
+---
+title: "Topic modeling"
+author: "Ting Yang"
+date: "05/12/2022"
+output: html_document
+---
+
+# LSA
+
+First, we build the LSA object and use 4 dimensions.And we check the *Doc-topic sim*, *Topic strength* and *Terms-topic sim*.
+```{r}
+TED.lsa <- textmodel_lsa(x = TED.dfm,nd = 4) 
+
+head(TED.lsa$docs)
+```
+
+```{r}
+head(TED.lsa$sk)
+```
+
+
+
+```{r}
+head(TED.lsa$features)
+```
+The first dimension is often correlated to (of little information and often not represented.) the document length and the frequency of the term. So we check the top words for dimension2, 3, and 4.
+```{r}
+n.terms <- 5
+## For Dimension 2
+w.order <- sort(TED.lsa$features[, 2],decreasing = TRUE)
+w.top.d2 <- c(w.order[1:n.terms],rev(rev(w.order)[1:n.terms]))
+## For Dimension 3
+w.order <- sort(TED.lsa$features[, 3], decreasing = TRUE)
+w.top.d3 <- c(w.order[1:n.terms], rev(rev(w.order)[1:n.terms]))
+## For Dimension 4
+w.order <- sort(TED.lsa$features[,4], decreasing = TRUE)
+w.top.d4 <- c(w.order[1:n.terms], rev(rev(w.order)[1:n.terms]))
+```
+
+```{r}
+w.top.d2
+```
+Dimension 2 is associated positively with word like "say", "people", "know", "love" ,"think", and negatively associated with "human", "datum", "use", "ai", "can".
+
+
+```{r}
+w.top.d3
+```
+Dimension 3 is associated positively with word like "climate", "year", "need", "change" ,"energy", and negatively associated with "like", "think", "robot", "human", "ai".
+
+
+```{r}
+w.top.d4
+```
+Dimension 3 is associated positively with word like "robot", "can", "see", "like" ,"go", and negatively associated with "company", "good", "people", "human", "ai".
+
+? why all the topics are negatively associated with "human", "ai"
+
+
+I combine the LSA result with the category of document and I represent every document on these two following plots. 
+```{r}
+
+TED.lsa.source <- TED_full %>% 
+  select(2) %>% cbind(as.data.frame(TED.lsa$docs))
+
+ggplot(data=TED.lsa.source,mapping = aes(
+  x=TED.lsa.source$V2,
+  y=TED.lsa.source$V3,
+  color=TED.lsa.source$cate))+
+  geom_point()+
+  labs(x = "dimension2",
+    y = "dimension3")+
+  scale_colour_discrete(
+    name="Category",
+    breaks=c("1","2","3"),
+    labels=c("AI","Climate change","Relationships")
+  )
+```
+First plot:x-axis is dimension 2 and y-axis is dimension3.
+According to this plot, most of the documents of category "Climate change" are positively associated with dimension3. Most of the documents of category "Relationships" are positively associated with dimension2
+
+```{r}
+ggplot(data=TED.lsa.source,mapping = aes(
+  x=TED.lsa.source$V3,
+  y=TED.lsa.source$V4,
+  color=TED.lsa.source$cate))+
+  geom_point()+
+  labs(x = "dimension3",
+    y = "dimension4")+
+  scale_colour_discrete(
+    name="Category",
+    breaks=c("1","2","3"),
+    labels=c("AI","Climate change","Relationships")
+  )
+```
+Second plot:x-axis is dimension 3 and y-axis is dimension4.
+According to this plot, most of the documents of category "Climate change" are positively associated with dimension3. Compare with the documents of other two categories, the documents of category "AI" are mostly associated with dimension4.
+
+# LDA
+Now I turn to Latent Dirichlet Association (LDA) and also choose 4 dimensions.
+```{r}
+TED.LDA <- LDA(
+  convert(TED.dfm, to = "topicmodels"),
+  k = 4)
+```
+
+First, I check the top10 words in each dimensions.
+```{r}
+topicmodels::terms(TED.LDA, 10)
+```
+Then I create a table to show the number of documents in each dimension.
+```{r}
+topicmodels::topics(TED.LDA)%>% table()
+```
+
+Then I use the topic_diagnostics function to diagnose the *prominence*, *coherence* and *exclusivity* of each dimension.
+```{r}
+topic_diagnostics(
+  topic_model = TED.LDA, 
+  dtm_data = convert(TED.dfm, to = "topicmodels"))
+```
+?Why the doc_prominence is different from the TED.lsa$sk value? Both of them are the strength of topic
+
+Topic 3 has the largest topic coherence and Topic 4 has the smallest topic coherence.
+
+Topic 4 has the largest topic exclusivity and Topic 2 has the smallest topic exclusivity.
+
+
+```{r}
+beta.long <- tidy(
+  TED.LDA,
+  matrix = "beta") # equivalent to melt (with this package)
+
+beta.long %>% 
+  group_by(topic) %>% 
+  top_n(15, beta) %>% 
+  ggplot(aes(reorder_within(term, beta, topic), beta)) + 
+  geom_col(show.legend = FALSE) +
+  coord_flip()+
+  facet_wrap(~ topic, scales = "free_y") +
+  scale_x_reordered() + 
+  xlab("Term") +
+  theme(
+    axis.text.y = element_text(size = 8),
+    axis.text.x = element_text(size = 8),
+    strip.text = element_text(size = 8))
+```
+
+```{r}
+
+document <- rownames(TED.lsa.source)
+TED.lsa.source <- cbind(document,TED.lsa.source)
+
+gamma.long <- tidy(TED.LDA,matrix = "gamma") %>% 
+  right_join(TED.lsa.source[1:2])
+
+gamma.long$cate<-factor(gamma.long$cate,
+                       levels = c('1','2','3'),
+                       labels = c("AI","Climate change","Relationships"))
+
+gamma.long %>% ggplot(mapping = aes(x=document,y=gamma,fill=cate))+
+  geom_col()+
+  coord_flip() + 
+  facet_wrap(~topic,ncol = 4)
+  
+  
+```
+
+Topic2 focus on "people", "know", "like", "love".
+Topic3 focus on "think", "like", "human", "robot".
+Topic4 focus on "year", "energy", "energy", "water"
+The *Relationships* related documents mainly talk about Topic 2.
+The *AI* related documents mainly talk about Topic3.
+The *Climate change* related documents mainly talk about Topic4.
+
