@@ -5,7 +5,8 @@
 # load the required packages
 packages <- c(
   "knitr","dplyr", "quanteda", "tokenizers", "quanteda.textstats", "lexicon",
-  "tidytext", "bpa",
+  "topicmodels","topicdoc",
+  "tidytext", "bpa", "quanteda.textmodels","ggplot2",
   "rvest", "RSelenium", "readr", "kableExtra", "lubridate", "stringr" #for map
 )
 
