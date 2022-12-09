@@ -14,6 +14,7 @@ TED.coo <- fcm(TED.tk,
                tri = FALSE) 
 head(TED.coo)
 ```
+For example, the co-occurrence of word *artificial* and *intelligence* is large(162). But the co-occurrence of word *fly* and *intelligence* is very small(0). 
 
 ```{r}
 set.seed(123)
@@ -26,7 +27,7 @@ TED.we <- t(TED.glove$components) + TED.we# unique representation
 
 ```{r}
 index <- textstat_frequency(dfm(TED.tk))[1:150, ]$feature
-index ## words with the 50 largest frequencies
+index ## words with the 150 largest frequencies
 ```
 
 ```{r}
@@ -40,6 +41,8 @@ ggplot(data.for.plot,
   theme_void() 
 ```
 Words that are close on the map are often used together (e.g. “ai”, “robot”, “problem”).
+
+
 
 # Document Embedding
 
@@ -64,12 +67,12 @@ head(TED.de) ## document vectors
 ```{r}
 TED.de <- as.data.frame(TED.de)
 TED.de.source <- TED_full %>% 
-  select(2) %>% cbind(TED.de)
+  select(2,3) %>% cbind(TED.de)
 
 ggplot(data=TED.de.source,mapping = aes(
-  x=TED.de.source$V1,
-  y=TED.de.source$V2,
-  color=TED.de.source$cate))+
+  x=V1,
+  y=V2,
+  color=cate))+
   geom_point()+
   labs(x = "dimension1",
     y = "dimension2")+
@@ -81,47 +84,53 @@ ggplot(data=TED.de.source,mapping = aes(
 ```
 
 
+
 # Supervised learning
 ```{r}
 row.names(TED.de.source) <- a
 TED.de.source$cate <- as.factor(TED.de.source$cate) 
 ```
 
+
 ```{r}
 set.seed(123)
 
-TED.tr <- TED.de.source[index.tr,]
-TED.te <- TED.de.source[-index.tr,]
+TED.Emb.tr <- TED.de.source[index.tr,]
+TED.Emb.te <- TED.de.source[-index.tr,]
 ```
 
 ```{r}
 table(TED.tr$cate)
 ```
+
+
 ```{r}
 n2 <- min(table(TED.tr$cate)) ## 327
 
-TED.tr.1 <- filter(TED.tr, cate=="1") ## the category 1
-TED.tr.2 <- filter(TED.tr, cate=="2") ## the category 2
-TED.tr.3 <- filter(TED.tr, cate=="3") ## the category 3
-index.1 <- sample(size=n2, x=1:nrow(TED.tr.1), replace=FALSE)
-index.3 <- sample(size=n2, x=1:nrow(TED.tr.3), replace=FALSE)
-TED.tr.subs <- data.frame(rbind(TED.tr.1[index.1,], 
-                                TED.tr.2,
-                                TED.tr.3[index.3,]))
+TED.Emb.tr.1 <- filter(TED.Emb.tr, cate=="1") ## the category 1
+TED.Emb.tr.2 <- filter(TED.Emb.tr, cate=="2") ## the category 2
+TED.Emb.tr.3 <- filter(TED.Emb.tr, cate=="3") ## the category 3
+index.1 <- sample(size=n2, x=1:nrow(TED.Emb.tr.1), replace=FALSE)
+index.3 <- sample(size=n2, x=1:nrow(TED.Emb.tr.3), replace=FALSE)
+TED.Emb.tr.subs <- data.frame(rbind(TED.Emb.tr.1[index.1,], 
+                                TED.Emb.tr.2,
+                                TED.Emb.tr.3[index.3,]))
 ```
 
 ```{r}
-TED.fit <- ranger(TED.tr.subs$cate~., 
-                     data = TED.tr.subs)
-pred.te <- predict(TED.fit, TED.te)
-confusionMatrix(data=pred.te$predictions, reference = TED.te$cate)
+TED.Emb.fit <- ranger(TED.Emb.tr.subs$cate~., 
+                      data = TED.Emb.tr.subs)
+pred.Emb.te <- predict(TED.Emb.fit, TED.Emb.te)
+confusionMatrix(data=pred.Emb.te$predictions, reference = TED.Emb.te$cate)
 ```
 
 # Combine LSA and embeding for supervised learning
 
 ```{r}
-TED.de.source <- TED.de.source %>% rename(V5=V1,V6=V2)
-TED.LSA.Emb <- TED.lsa.source %>% cbind(TED.de.source) %>% 
+TED.de.source <- TED.de.source %>% 
+  rename(V5=V1,V6=V2)
+TED.LSA.Emb <- TED.lsa.source %>% 
+  cbind(TED.de.source) %>% 
   select(-7)
 ```
 
@@ -129,26 +138,26 @@ TED.LSA.Emb <- TED.lsa.source %>% cbind(TED.de.source) %>%
 ```{r}
 set.seed(123)
 
-TED.tr <- TED.LSA.Emb[index.tr,]
-TED.te <- TED.LSA.Emb[-index.tr,]
+TED.Com.tr <- TED.LSA.Emb[index.tr,]
+TED.Com.te <- TED.LSA.Emb[-index.tr,]
 ```
 
 ```{r}
-TED.tr.1 <- filter(TED.tr, cate=="1") ## the category 1
-TED.tr.2 <- filter(TED.tr, cate=="2") ## the category 2
-TED.tr.3 <- filter(TED.tr, cate=="3") ## the category 3
-index.1 <- sample(size=n2, x=1:nrow(TED.tr.1), replace=FALSE)
-index.3 <- sample(size=n2, x=1:nrow(TED.tr.3), replace=FALSE)
-TED.tr.subs <- data.frame(rbind(TED.tr.1[index.1,], 
-                                TED.tr.2,
-                                TED.tr.3[index.3,]))
+TED.Com.tr.1 <- filter(TED.Com.tr, cate=="1") ## the category 1
+TED.Com.tr.2 <- filter(TED.Com.tr, cate=="2") ## the category 2
+TED.Com.tr.3 <- filter(TED.Com.tr, cate=="3") ## the category 3
+index.1 <- sample(size=n2, x=1:nrow(TED.Com.tr.1), replace=FALSE)
+index.3 <- sample(size=n2, x=1:nrow(TED.Com.tr.3), replace=FALSE)
+TED.Com.tr.subs <- data.frame(rbind(TED.Com.tr.1[index.1,],
+                                    TED.Com.tr.2,
+                                    TED.Com.tr.3[index.3,]))
 ```
 
 
 ```{r}
-TED.fit <- ranger(TED.tr.subs$cate~., 
-                     data = TED.tr.subs[2:8])
-pred.te <- predict(TED.fit, TED.te)
-confusionMatrix(data=pred.te$predictions, reference = TED.te$cate)
+TED.Com.fit <- ranger(TED.Com.tr.subs$cate~.,
+                      data = TED.Com.tr.subs[2:9])
+pred.Com.te <- predict(TED.Com.fit, TED.Com.te)
+confusionMatrix(data=pred.Com.te$predictions, reference = TED.Com.te$cate)
 ```
 
