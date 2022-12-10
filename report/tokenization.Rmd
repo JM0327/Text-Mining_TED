@@ -14,44 +14,33 @@ source(here::here("scripts/setup.R"))
 Unfortunately, we found 34 videos in total do not have information in transcript. One video is from AI while 22 videos and 11 videos are from Climate change and Relationships categories, respectively. 
 ....
 ```{r}
-# Import and clean data
-TED <- read_csv(here::here("data/TED.csv"))
-views_add <- read_csv(here::here("data/add_details_1.csv"))
+# Import data
+TED <- read_csv(here::here("data/TED.csv")) #330 obs
+views_add <- read_csv(here::here("data/add_details_1.csv")) #310 obs
 ```
 
 ```{r}
-TED <- left_join(TED,views_add, by = c("title"="page_title")) # add views in each video page
-TED <- TED %>% filter(is.na(TED$tanscript)==F)  # drop the rows having na caused by left join 
-TED <- TED %>% filter(is.na(TED$views_details)==F)
+# Delete duplicate rows of TED
+sum(duplicated(TED)) #6
+TED <- TED[!duplicated(TED), ]
 
+# Delete duplicate rows of views_add
+unique(views_add$page_title) #304 so duplicate title = 6
+views_add <- views_add[!duplicated(views_add), ] 
 
-# extract the number of views times 
-# first separate the views detail into two parts (before "views" after "views")
-views_time <- as.character()
-for (i in 1:length(TED$views_details)) {
-  views_temp <- TED$views_details[i]
-  views_temp <- strsplit(views_temp, "views")
-  views_temp <- views_temp[[1]][1]
-  views_time <- append(views_time,views_temp)
-}
-views_time <- gsub(" ","",views_time)
-views_time <- gsub(",","",views_time)
-TED$views_details <- as.numeric(views_time)
-```
-
-
-```{r}
+# Combine tables
+TED <- left_join(TED,views_add, by = c("title"="page_title")) 
 TED <- TED %>% as_tibble(data.frame(TED)) %>%
-  select(views_times.x, cate, likes, tanscript,views_details)
+  select(views_times.x, cate, likes, tanscript, views_details)
 colnames(TED)[1] <- "posted"
-checkna <- TED[is.na(TED$tanscript), ]
 
 # Identify NA and remove
-# numtotal <- data.frame(table(TED$cate))
-# numna <- data.frame(table(checkna$cate))
-# diff <- numtotal %>% left_join(numna, by = "Var1") %>%
-#   mutate(diff = Freq.x-Freq.y)
-TED <- na.omit(TED)
+checkna <- TED[is.na(TED$tanscript), ]
+numtotal <- data.frame(table(TED$cate))
+numna <- data.frame(table(checkna$cate))
+diff <- numtotal %>% left_join(numna, by = "Var1") %>%
+  mutate(diff = Freq.x-Freq.y)
+TED <- TED[!is.na(TED$tanscript), ]
 
 # Parse data
 TED$posted <- my(TED$posted)
@@ -65,6 +54,19 @@ TED$likes <- gsub(x,'',TED$likes)
 TED$likes <- gsub("K", "e3", TED$likes)
 TED$likes <- gsub("M", "e6", TED$likes)
 TED$likes <- as.numeric(TED$likes)
+
+# Clean number of views
+# first separate the views detail into two parts (before "views" after "views")
+views_time <- as.character()
+for (i in 1:length(TED$views_details)) {
+  views_temp <- TED$views_details[i]
+  views_temp <- strsplit(views_temp, "views")
+  views_temp <- views_temp[[1]][1]
+  views_time <- append(views_time,views_temp)
+}
+views_time <- gsub(" ","",views_time)
+views_time <- gsub(",","",views_time)
+TED$views_details <- as.numeric(views_time)
 
 # Clean transcript
 TED$tanscript <- gsub("^.+?00:(.*)","\\1",TED$tanscript)
@@ -109,7 +111,7 @@ for (i in 1:n_transcript) {
     }
     
     text_temp = paste(subcat_temp,".",as.character(j), sep = "", collapse = "")
-    TED_temp <- data.frame(posted = TED$posted[i], cate = TED$cate[i], like = TED$likes[i], subcate = subcat_temp, text = text_temp, tanscript = sentence_temp)
+    TED_temp <- data.frame(posted = TED$posted[i], cate = TED$cate[i], like = TED$likes[i], view = TED$views_details[i], subcate = subcat_temp, text = text_temp, tanscript = sentence_temp)
     TED_full <- rbind(TED_full, TED_temp)
   }
     
@@ -117,7 +119,7 @@ for (i in 1:n_transcript) {
 
 TED_full$tanscript <- trim_ws(TED_full$tanscript)
 
-# Our final table = TED_full consisting of 1524 instances
+# Our final table = TED_full consisting of 1496 instances
 
 # kable(TED[, ], caption = "The original TED table") %>%
 #   kable_styling(bootstrap_options = "bordered") %>%
