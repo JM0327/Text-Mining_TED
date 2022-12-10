@@ -16,8 +16,33 @@ Unfortunately, we found 34 videos in total do not have information in transcript
 ```{r}
 # Import and clean data
 TED <- read_csv(here::here("data/TED.csv"))
+views_add <- read_csv(here::here("data/add_details_1.csv"))
+```
+
+```{r}
+TED <- left_join(TED,views_add, by = c("title"="page_title")) # add views in each video page
+TED <- TED %>% filter(is.na(TED$tanscript)==F)  # drop the rows having na caused by left join 
+TED <- TED %>% filter(is.na(TED$views_details)==F)
+
+
+# extract the number of views times 
+# first separate the views detail into two parts (before "views" after "views")
+views_time <- as.character()
+for (i in 1:length(TED$views_details)) {
+  views_temp <- TED$views_details[i]
+  views_temp <- strsplit(views_temp, "views")
+  views_temp <- views_temp[[1]][1]
+  views_time <- append(views_time,views_temp)
+}
+views_time <- gsub(" ","",views_time)
+views_time <- gsub(",","",views_time)
+TED$views_details <- as.numeric(views_time)
+```
+
+
+```{r}
 TED <- TED %>% as_tibble(data.frame(TED)) %>%
-  select(views_times.x, cate, likes, tanscript)
+  select(views_times.x, cate, likes, tanscript,views_details)
 colnames(TED)[1] <- "posted"
 checkna <- TED[is.na(TED$tanscript), ]
 
