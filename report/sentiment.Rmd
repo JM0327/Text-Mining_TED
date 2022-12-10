@@ -8,17 +8,15 @@ output: html_document
 ```{r}
 source(here::here("scripts/setup.R"))
 library(flextable)
+library(sentimentr)
+library(treemapify)
 
 ```
 
 
-use three dictionary:AFINN,Bing,NRC
-
-https://www.datacamp.com/tutorial/sentiment-analysis-R:
-The tidytext package includes a dataset called sentiments which provides several distinct lexicons. These lexicons are dictionaries of words with an assigned sentiment category or value. tidytext provides three general purpose lexicons:
+use three dictionary:AFINN,NRC
 
 AFINN: assigns words with a score that runs between -5 and 5, with negative scores indicating negative sentiment and positive scores indicating positive sentiment  
-Bing: assigns words into positive and negative categories  
 NRC: assigns words into one or more of the following ten categories: positive, negative, anger, anticipation, disgust, fear, joy, sadness, surprise, and trust   
 
 ```{r}
@@ -71,7 +69,6 @@ TED_sentiment$tanscript <- gsub("[[:digit:]]"," ",TED_sentiment$tanscript)
 
 ```{r}
 # since sentiment analysis cannot use cleaned data after stemming, so here use another way to tokenize again
-
 TED.tok <- unnest_tokens(
   TED_sentiment,
   output = "word",
@@ -82,92 +79,69 @@ TED.tok <- unnest_tokens(
 TED.tok <- TED.tok %>% filter(word != "laughter" | word != "applaud")
 ```
 
+### Sentiment Based 
 ```{r}
-#NRC
-#get_sentiments(lexicon = "nrc")
+# NRC
+# join the corresponding sentiment qualifier in “nrc” 
+
 TED.sent.nrc <- 
   inner_join(
     TED.tok,
     get_sentiments("nrc"),
     by = c("word" = "word"))
+
 head(TED.sent.nrc, 10) %>% flextable() %>% autofit()
 
-# TED.sent.bing <- 
-#   inner_join(
-#     TED.tok,
-#     get_sentiments("bing"),
-#     by = c("word" = "word"))
-# head(TED.sent.nrc, 10) %>% flextable() %>% autofit()
-
-# Afinn
-TED.sent.afinn <- 
-  inner_join(
-    TED.tok,
-    get_sentiments("afinn"),
-    by = c("word" = "word"))
-
-TED.sent.afinn %>% 
-  group_by(title) %>% 
-  summarize(Score = mean(value)) %>% 
-  ungroup() %>% 
-  arrange(Score) %>% 
-  flextable() %>% 
-  autofit()
 ```
 
-
-Sentiment Based
-
 ```{r}
-# video likes
+# Sub data for checking Video likes topic
+TED.nrc <- TED.sent.nrc %>% 
+  group_by(title,cate,likes,sentiment) %>% summarise(n=n())
 
-TED.nrc.like <- TED.sent.nrc %>% 
-  select(title,word,likes,sentiment) %>%
-  group_by(title,likes,sentiment) %>% summarise(n=n())
+# too many text, hard to read
+# extract top 20, tail 20 transcipt to check their sentiment
+toplike20 <- TED.nrc[order(TED.nrc$likes,decreasing = T),][1:200,]
+taillike20 <- TED.nrc[order(TED.nrc$likes,decreasing = F),][1:200,]
 
-# TED.bing.like <- TED.sent.bing %>% 
-#   select(title,word,likes,sentiment) %>%
-#   group_by(title,likes,sentiment) %>% summarise(n=n())
-
-toplike20 <- TED.nrc.like[order(TED.nrc.like$likes,decreasing = T),][1:200,]
-taillike20 <- TED.nrc.like[order(TED.nrc.like$likes,decreasing = F),][1:200,]
-
+# top
 toplike20%>%
   ggplot(mapping = aes(x = sentiment, y=n, fill = sentiment)) + 
   geom_bar(stat = "identity",
            alpha = 0.8) + 
   facet_wrap(~ title) + 
-  coord_flip()
+  coord_flip()+
+  theme(legend.position = 'bottom')+
+  labs(y="the number of sentiment")
 
+# tail
 taillike20%>%
   ggplot(mapping = aes(x = sentiment, y=n, fill = sentiment)) + 
   geom_bar(stat = "identity",
            alpha = 0.8) + 
   facet_wrap(~ title) + 
-  coord_flip()
-
-# TED.bing.like[order(TED.bing.like$likes,decreasing = T),][1:20,] %>%
-#   ggplot(mapping = aes(x = sentiment, y=n, fill = sentiment)) + 
-#   geom_bar(stat = "identity",
-#            alpha = 0.8) + 
-#   facet_wrap(~ title) + 
-#   coord_flip()
+  coord_flip()+
+  theme(legend.position = 'bottom')+
+  labs(y="the number of sentiment")
   
 ```
-rescale them by their length (i.e. the frequencies of sentiments are computed, by document):
+
+
+
+**Re-scale sentiment by their length:**
 
 ```{r}
-TED.sent.nrc.total <- 
-  TED.sent.nrc %>% 
+
+# the frequencies of sentiments are computed, by document
+TED.sent.nrc.total <- TED.sent.nrc %>% 
   group_by(title,likes) %>% 
   summarize(Total = n()) %>% 
   ungroup()
 
-
+#top
 left_join(
   TED.sent.nrc,
-  TED.sent.nrc.total
-)%>% 
+  TED.sent.nrc.total)%>% 
   filter(title %in% toplike20$title) %>%
   group_by(title, sentiment) %>%  
   summarize(n = n(),
@@ -180,12 +154,14 @@ left_join(
     fill = sentiment)) + 
   geom_bar(stat = "identity", alpha = 0.8) + 
   facet_wrap(~ title) + 
-  coord_flip()
+  coord_flip()+
+  theme(legend.position = 'bottom')+
+  labs(y="the number of sentiment")
 
+#tail
 left_join(
   TED.sent.nrc,
-  TED.sent.nrc.total
-)%>% 
+  TED.sent.nrc.total)%>% 
   filter(title %in% taillike20$title) %>%
   group_by(title, sentiment) %>%  
   summarize(n = n(),
@@ -198,14 +174,152 @@ left_join(
     fill = sentiment)) + 
   geom_bar(stat = "identity", alpha = 0.8) + 
   facet_wrap(~ title) + 
-  coord_flip()
+  coord_flip()+
+  theme(legend.position = 'bottom')+
+  labs(y="the number of sentiment")
 ```
-
-Value-Based
 
 ```{r}
+# it is hard to check the sentiment for each video, then check it for each cate
+
+TED.nrc %>% 
+  ggplot(mapping = aes(subgroup = cate, fill = interaction(sentiment, cate), area = n)) +
+  geom_treemap(color="white", size=0.5*.pt, alpha=NA) +
+  geom_treemap_subgroup_text(
+    place = "center", alpha = 0.5, grow = TRUE) + 
+  geom_treemap_text(mapping = aes(
+    label = sentiment), 
+    color = "white",
+    place = "center", grow = FALSE) +
+  guides(fill = FALSE)
 
 ```
 
 
+
+### Value-Based
+
+```{r}
+# Afinn
+
+TED.sent.afinn <- 
+  inner_join(
+    TED.tok,
+    get_sentiments("afinn"),
+    by = c("word" = "word"))
+
+# calculate the average score per documen
+TED.sent.afinn %>% 
+  group_by(title) %>% 
+  summarize(Score = mean(value)) %>% 
+  ungroup() %>% 
+  arrange(Score) %>% 
+  flextable() %>% 
+  autofit()
+```
+
+```{r, fig.height=20}
+TED.sent.afinn %>% 
+  group_by(title) %>% 
+  summarize(Score = mean(value)) %>% 
+  ungroup() %>% 
+  ggplot(aes(x = reorder(title, Score), y = Score)) + 
+  geom_bar(stat = "identity") + 
+  coord_flip() +
+  ylab("Mean Sentiment Score") +
+  xlab("")
+
+```
+
+```{r}
+#extract the top and tail videos
+video_sentiscore <- TED.sent.afinn %>% 
+  group_by(title) %>% 
+  summarize(Score = mean(value))
+
+video_sentiscore[order(video_sentiscore$Score,decreasing = T),][1:10,]
+video_sentiscore[order(video_sentiscore$Score,decreasing = F),][1:10,]
+```
+
+### Videos' likes and its sentiment   
+
+```{r}
+TED.sent.afinn.like <- TED.sent.afinn %>% 
+  group_by(title,cate,likes) %>% 
+  summarize(Score = mean(value))
+
+TED.sent.afinn.like %>% ggplot(aes(x=likes,y=Score,color = cate))+
+  geom_line() +
+  facet_wrap(~cate, nrow = 3,scales = 'free')
+```
+
+### Videos' category and its sentiment   
+
+```{r}
+TED.sent.afinn.cate <- TED.sent.afinn %>% 
+  group_by(title,cate) %>% 
+  summarize(Score = mean(value))
+
+TED.sent.afinn.cate %>% 
+  ggplot(mapping = aes(x = cate, y = Score))+
+  geom_boxplot()
+```
+
+### Videos' sentiment over years   
+
+```{r}
+TED.sent.afinn.year <- TED.sent.afinn 
+TED.sent.afinn.year$posted <- year(my(TED.sent.afinn.year$posted))
+
+TED.sent.afinn.year <- TED.sent.afinn.year %>% 
+  group_by(cate,posted) %>% 
+  summarize(Score = mean(value))
+
+TED.sent.afinn.year %>% ggplot(aes(x=posted,y=Score,color=cate))+
+  geom_line()
+```
+
+
+### Sentiment Analysis using Valence-Shifters   
+
+```{r}
+## split by sentences
+TED_sentiment_text <- get_sentences(TED_sentiment$tanscript)
+## Compute the sentiment by sentences
+TED.senti <- sentiment(TED_sentiment_text)
+## Prepare a tibble for the plot
+TED.senti <- as_tibble(TED.senti)
+## Plot the sentiment curve by sentences
+TED.senti %>% 
+  # group_by(element_id) %>%
+  ggplot(aes(x = sentence_id, y = sentiment)) + 
+  geom_line() + 
+  facet_wrap(~ element_id) 
+```
+
+```{r}
+TED.sentdoc <- sentiment_by(TED_sentiment$tanscript)
+
+TED.sentdoc %>% 
+  mutate(Document = factor(paste("Doc_", element_id, sep = ""))) %>% 
+  ggplot(aes(x = reorder(Document, ave_sentiment),
+             y = ave_sentiment)) + 
+  geom_bar(stat="identity") + 
+  coord_flip() +
+  xlab("") +
+  ylab("Average Sentiment Score")
+```
+
+```{r}
+#check the difference between afinn method and Valence-Shifters
+#check the number of doc with score < 0 
+sum((TED.sentdoc$ave_sentiment <0) == T)
+
+negative <- TED.sent.afinn %>% 
+  group_by(title) %>% 
+  summarize(Score = mean(value)) %>%
+  filter(Score < 0 )
+
+length(negative$title)
+```
 
