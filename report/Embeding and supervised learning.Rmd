@@ -42,6 +42,19 @@ ggplot(data.for.plot,
 ```
 Words that are close on the map are often used together (e.g. “ai”, “robot”, “problem”).
 
+```{r}
+TED.we <- as.data.frame(TED.we)
+word <- rownames(TED.we)
+TED.we <- cbind(word,TED.we)
+e <- c(1:15431)
+row.names(TED.we) <- e
+
+ggplot(TED.we,aes(x=V1,y=V2))+
+  geom_text_repel(data = subset(TED.we, V1 > 2 ),
+            mapping = aes(label = word),
+            hjust = "inward") +
+  geom_point(color="grey")
+```
 
 
 # Document Embedding
@@ -160,4 +173,5 @@ TED.Com.fit <- ranger(TED.Com.tr.subs$cate~.,
 pred.Com.te <- predict(TED.Com.fit, TED.Com.te)
 confusionMatrix(data=pred.Com.te$predictions, reference = TED.Com.te$cate)
 ```
+
 
