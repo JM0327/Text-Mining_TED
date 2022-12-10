@@ -48,9 +48,12 @@ word <- rownames(TED.we)
 TED.we <- cbind(word,TED.we)
 e <- c(1:15431)
 row.names(TED.we) <- e
+```
 
+another kind of plot
+```{r}
 ggplot(TED.we,aes(x=V1,y=V2))+
-  geom_text_repel(data = subset(TED.we, V1 > 2 ),
+  geom_text_repel(data = subset(TED.we, V2 <=-1.5|V2>2|V1>1.5),
             mapping = aes(label = word),
             hjust = "inward") +
   geom_point(color="grey")
