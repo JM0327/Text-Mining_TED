@@ -7,6 +7,7 @@ output: html_document
 
 # LSA
 
+## LSA on TF
 First, we build the LSA object and use 4 dimensions.And we check the *Doc-topic sim*, *Topic strength* and *Terms-topic sim*.
 ```{r}
 TED.lsa <- textmodel_lsa(x = TED.dfm,nd = 4) 
@@ -64,9 +65,9 @@ TED.lsa.source <- TED_full %>%
   select(2) %>% cbind(as.data.frame(TED.lsa$docs))
 
 ggplot(data=TED.lsa.source,mapping = aes(
-  x=TED.lsa.source$V2,
-  y=TED.lsa.source$V3,
-  color=TED.lsa.source$cate))+
+  x=V2,
+  y=V3,
+  color=cate))+
   geom_point()+
   labs(x = "dimension2",
     y = "dimension3")+
@@ -81,9 +82,9 @@ According to this plot, most of the documents of category "Climate change" are p
 
 ```{r}
 ggplot(data=TED.lsa.source,mapping = aes(
-  x=TED.lsa.source$V3,
-  y=TED.lsa.source$V4,
-  color=TED.lsa.source$cate))+
+  x=V3,
+  y=V4,
+  color=cate))+
   geom_point()+
   labs(x = "dimension3",
     y = "dimension4")+
@@ -96,12 +97,92 @@ ggplot(data=TED.lsa.source,mapping = aes(
 Second plot:x-axis is dimension 3 and y-axis is dimension4.
 According to this plot, most of the documents of category "Climate change" are positively associated with dimension3. Compare with the documents of other two categories, the documents of category "AI" are mostly associated with dimension4.
 
+## LSA on TF-IDF
+
+```{r}
+TED.lsa2 <- textmodel_lsa(TED.tfidf, nd = 4) 
+```
+
+
+```{r}
+head(TED.lsa2$docs)
+```
+
+
+```{r}
+head(TED.lsa2$sk)
+```
+
+```{r}
+head(TED.lsa2$features)
+```
+
+```{r}
+## For Dimension 2
+w2.order <- sort(TED.lsa2$features[, 2],decreasing = TRUE)
+w2.top.d2 <- c(w2.order[1:n.terms],rev(rev(w2.order)[1:n.terms]))
+## For Dimension 3
+w2.order <- sort(TED.lsa2$features[, 3], decreasing = TRUE)
+w2.top.d3 <- c(w2.order[1:n.terms], rev(rev(w2.order)[1:n.terms]))
+## For Dimension 4
+w2.order <- sort(TED.lsa2$features[, 4], decreasing = TRUE)
+w2.top.d4 <- c(w2.order[1:n.terms], rev(rev(w2.order)[1:n.terms]))
+```
+
+```{r}
+w2.top.d2
+```
+
+```{r}
+w2.top.d3
+```
+
+```{r}
+w2.top.d4
+```
+
+```{r}
+TED.lsa2.source <- TED_full %>% 
+  select(2) %>% cbind(as.data.frame(TED.lsa2$docs))
+
+ggplot(data=TED.lsa2.source,mapping = aes(
+  x=V2,
+  y=V3,
+  color=cate))+
+  geom_point()+
+  labs(x = "dimension2",
+    y = "dimension3")+
+  scale_colour_discrete(
+    name="Category",
+    breaks=c("1","2","3"),
+    labels=c("AI","Climate change","Relationships")
+  )
+```
+
+
+```{r}
+ggplot(data=TED.lsa2.source,mapping = aes(
+  x=V3,
+  y=V4,
+  color=cate))+
+  geom_point()+
+  labs(x = "dimension3",
+    y = "dimension4")+
+  scale_colour_discrete(
+    name="Category",
+    breaks=c("1","2","3"),
+    labels=c("AI","Climate change","Relationships")
+  )
+```
+
+
+
 # LDA
-Now I turn to Latent Dirichlet Association (LDA) and also choose 4 dimensions.
+Now I turn to Latent Dirichlet Association (LDA) and choose 3 dimensions.
 ```{r}
 TED.LDA <- LDA(
   convert(TED.dfm, to = "topicmodels"),
-  k = 4)
+  k = 3)
 ```
 
 First, I check the top10 words in each dimensions.
@@ -173,10 +254,10 @@ The *Relationships* related documents mainly talk about Topic 2.
 The *AI* related documents mainly talk about Topic3.
 The *Climate change* related documents mainly talk about Topic4.
 
-# Supervised learning
+# Supervised learning(LSA on TF)
 
 ```{r}
-a <- c(1:1524)
+a <- c(1:1471)
 row.names(TED.lsa.source) <- a
 TED.lsa.source$cate <- as.factor(TED.lsa.source$cate) 
 ```
@@ -198,6 +279,7 @@ The data is unbalanced.
 We use the subsampling method to balance the data
 
 ```{r}
+set.seed(123)
 n2 <- min(table(TED.tr$cate)) ## 327
 
 TED.tr.1 <- filter(TED.tr, cate=="1") ## the category 1
@@ -219,6 +301,41 @@ table(TED.tr.subs$cate)
 TED.fit <- ranger(TED.tr.subs$cate ~ ., 
                      data = TED.tr.subs[2:6])
 pred.te <- predict(TED.fit, TED.te)
+confusionMatrix(data=pred.te$predictions, reference = TED.te$cate)
+```
+
+# Supervised learning(LSA on TF-IDF)
+```{r}
+TED.lsa2.source <- cbind(document,TED.lsa2.source)
+row.names(TED.lsa2.source) <- a
+TED.lsa2.source$cate <- as.factor(TED.lsa2.source$cate)
+```
+
+```{r}
+set.seed(123)
+index.tr <- createDataPartition(y = TED.lsa2.source$cate, p= 0.8, list = FALSE)
+TED.tr <- TED.lsa2.source[index.tr,]
+TED.te <- TED.lsa2.source[-index.tr,]
+```
+
+```{r}
+n2 <- min(table(TED.tr$cate)) ## 327
+
+TED.tr.1 <- filter(TED.tr, cate=="1") ## the category 1
+TED.tr.2 <- filter(TED.tr, cate=="2") ## the category 2
+TED.tr.3 <- filter(TED.tr, cate=="3") ## the category 3
+index.1 <- sample(size=n2, x=1:nrow(TED.tr.1), replace=FALSE)
+index.3 <- sample(size=n2, x=1:nrow(TED.tr.3), replace=FALSE)
+TED.tr.subs <- data.frame(rbind(TED.tr.1[index.1,], 
+                                TED.tr.2,
+                                TED.tr.3[index.3,]))
+```
+
+
+```{r}
+TED.fit2 <- ranger(TED.tr.subs$cate ~ ., 
+                     data = TED.tr.subs[2:6])
+pred.te <- predict(TED.fit2, TED.te)
 confusionMatrix(data=pred.te$predictions, reference = TED.te$cate)
 ```
 
