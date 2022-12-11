@@ -1,73 +1,20 @@
 ---
-title: "sentiment"
-author: "Jiaming"
-date: "2022-12-10"
-output: html_document
+title: "Sentiment analysis"
 ---
 
-```{r}
-source(here::here("scripts/setup.R"))
-library(flextable)
-library(sentimentr)
-library(treemapify)
+In this part, we use two dictionary: AFINN, NRC and method of Valence-Shifters to do sentiment analysis for every video's transcript, which means we don't split the transcript by every 20 sentences. It might be better to see if the sentiment of video would influence the other features. Here, we have following hypothesis:   
 
-```
-
-
-use three dictionary:AFINN,NRC
-
-AFINN: assigns words with a score that runs between -5 and 5, with negative scores indicating negative sentiment and positive scores indicating positive sentiment  
-NRC: assigns words into one or more of the following ten categories: positive, negative, anger, anticipation, disgust, fear, joy, sadness, surprise, and trust   
-
-```{r}
-# Import and clean data
-TED <- read_csv(here::here("data/TED.csv"))
-views_add <- read_csv(here::here("data/add_details_1.csv"))
-
-TED <- left_join(TED,views_add, by = c("title"="page_title")) # add views in each video page
-TED <- TED %>% filter(is.na(TED$tanscript)==F)  # drop the rows having na caused by left join 
-TED <- TED %>% filter(is.na(TED$views_details)==F)
-
-
-# extract the number of views times 
-# first separate the views detail into two parts (before "views" after "views")
-views_time <- as.character()
-for (i in 1:length(TED$views_details)) {
-  views_temp <- TED$views_details[i]
-  views_temp <- strsplit(views_temp, "views")
-  views_temp <- views_temp[[1]][1]
-  views_time <- append(views_time,views_temp)
-}
-views_time <- gsub(" ","",views_time)
-views_time <- gsub(",","",views_time)
-TED$views_details <- as.numeric(views_time)
-```
-
-```{r}
-TED_sentiment <- TED %>% select(title,speaker.x,views_times.x,cate,likes,tanscript,views_details)
-
-TED_sentiment <- na.omit(TED_sentiment)
-colnames(TED_sentiment)[2] <- "speaker"
-colnames(TED_sentiment)[3] <- "posted"
-
-
-TED_sentiment$likes <- gsub("[(]",'',TED_sentiment$likes)
-TED_sentiment$likes <- gsub("[)]",'',TED_sentiment$likes)
-x <- substr(TED_sentiment$likes[1],1,1)
-TED_sentiment$likes <- gsub(x,'',TED_sentiment$likes)
-TED_sentiment$likes <- gsub("K", "e3", TED_sentiment$likes)
-TED_sentiment$likes <- gsub("M", "e6", TED_sentiment$likes)
-TED_sentiment$likes <- as.numeric(TED_sentiment$likes)
-
-# Clean transcript
-
-TED_sentiment$tanscript <- gsub("^.+?00:(.*)","\\1",TED_sentiment$tanscript)
-TED_sentiment$tanscript <- gsub("\r\n"," ",TED_sentiment$tanscript)
-TED_sentiment$tanscript <- gsub("[[:digit:]]"," ",TED_sentiment$tanscript)
-```
+- The sentiment of videos are related to the corresponding topic. Topic like AI may have more positive sentiment.   
+- The sentiment of videos influence users giving likes. Positive videos usually have more likes.  
+- The sentiment of videos changed over years, since it might related to the corresponding affairs.    
 
 
 ```{r}
+# resume cate, better to interpret 
+TED_sentiment$cate <- gsub("1","AI",TED_sentiment$cate)
+TED_sentiment$cate <- gsub("2","Climate change",TED_sentiment$cate)
+TED_sentiment$cate <- gsub("3","Relationships",TED_sentiment$cate)
+
 # since sentiment analysis cannot use cleaned data after stemming, so here use another way to tokenize again
 TED.tok <- unnest_tokens(
   TED_sentiment,
@@ -79,7 +26,10 @@ TED.tok <- unnest_tokens(
 TED.tok <- TED.tok %>% filter(word != "laughter" | word != "applaud")
 ```
 
-### Sentiment Based 
+## Sentiment Based    
+
+First, we use NRC method to check the sentiment description of each videos transcript. as it's sentiment based method, we would like to only check the relationship with videos' topics and their likes.   
+
 ```{r}
 # NRC
 # join the corresponding sentiment qualifier in “nrc” 
@@ -90,9 +40,14 @@ TED.sent.nrc <-
     get_sentiments("nrc"),
     by = c("word" = "word"))
 
-head(TED.sent.nrc, 10) %>% flextable() %>% autofit()
+head(TED.sent.nrc, 5) %>% flextable() %>% autofit()
 
 ```
+
+### Sentiment v.s. Likes     
+
+Since there are near to 300 transcript (videos), we would like to extract 20 videos with the most likes and the least likes, respectively.         
+
 
 ```{r}
 # Sub data for checking Video likes topic
@@ -127,8 +82,7 @@ taillike20%>%
 ```
 
 
-
-**Re-scale sentiment by their length:**
+**Re-scale sentiment by their length:**   
 
 ```{r}
 
@@ -179,11 +133,21 @@ left_join(
   labs(y="the number of sentiment")
 ```
 
+In this part, we did NRC method in two different ways, one without scaling and another with re-scaling the sentiment by their length in the documents.    
+
+No matter in which way we can see that there are no obvious difference among the videos with the most likes and the least likes, in terms of their likes. Positive and anticipation appearing in everywhere. In some top 20 videos, we could also see the negative and fear sentiment with relatively high levels.       
+
+### Sentiment v.s. Topics    
+
+we would like to check what is the more frequent sentiment appearing in each topics. we suppose the topic like climate change is more related to negative or fear sentiment, and for the topic like AI, we could see anticipation or positive sentiment more frequent.   
+
 ```{r}
 # it is hard to check the sentiment for each video, then check it for each cate
 
 TED.nrc %>% 
-  ggplot(mapping = aes(subgroup = cate, fill = interaction(sentiment, cate), area = n)) +
+  group_by(cate,sentiment) %>%
+  summarise(cate_n = sum(n)) %>%
+  ggplot(mapping = aes(subgroup = cate, fill = interaction(sentiment, cate), area = cate_n)) +
   geom_treemap(color="white", size=0.5*.pt, alpha=NA) +
   geom_treemap_subgroup_text(
     place = "center", alpha = 0.5, grow = TRUE) + 
@@ -195,9 +159,14 @@ TED.nrc %>%
 
 ```
 
+As we assume, The topic of AI is often accompanied by positive and anticipation, and we could not ignore trust. Yet, we could see that negative also accounts for a not small part. Contrary to our speculation, the topic of climate change has the same positive sentiment which is also the most frequent part in this topic. And, each sentiment is more evenly distributed in the videos on the topic of relationships, even though the positive sentiment is still the most.    
 
+In this case, we begin to assume that positive sentiment actually is the main sentiment in TED talk showing in all videos, based on previous analysis.    
 
-### Value-Based
+### Value-Based    
+
+Thus, except for the initial assumption, we would like to check one more assumption - if the positive sentiment appears in all videos, by using the value-based method: Afinn.    
+
 
 ```{r}
 # Afinn
@@ -209,16 +178,16 @@ TED.sent.afinn <-
     by = c("word" = "word"))
 
 # calculate the average score per documen
-TED.sent.afinn %>% 
-  group_by(title) %>% 
-  summarize(Score = mean(value)) %>% 
-  ungroup() %>% 
-  arrange(Score) %>% 
-  flextable() %>% 
-  autofit()
+# TED.sent.afinn %>% 
+#   group_by(title) %>% 
+#   summarize(Score = mean(value)) %>% 
+#   ungroup() %>% 
+#   arrange(Score) %>% 
+#   flextable() %>% 
+#   autofit() 
 ```
 
-```{r, fig.height=20}
+```{r, fig.height=15}
 TED.sent.afinn %>% 
   group_by(title) %>% 
   summarize(Score = mean(value)) %>% 
@@ -231,17 +200,19 @@ TED.sent.afinn %>%
 
 ```
 
+here, we calculated the average sentiment score per video. We can see that the number of videos transcript with positive and negative values is very disparate. Thus, TED talk do prefer giving positive videos.      
+
 ```{r}
 #extract the top and tail videos
 video_sentiscore <- TED.sent.afinn %>% 
   group_by(title) %>% 
   summarize(Score = mean(value))
 
-video_sentiscore[order(video_sentiscore$Score,decreasing = T),][1:10,]
-video_sentiscore[order(video_sentiscore$Score,decreasing = F),][1:10,]
+# video_sentiscore[order(video_sentiscore$Score,decreasing = T),][1:10,]
+# video_sentiscore[order(video_sentiscore$Score,decreasing = F),][1:10,]
 ```
 
-### Videos' likes and its sentiment   
+### Sentiment v.s. Likes    
 
 ```{r}
 TED.sent.afinn.like <- TED.sent.afinn %>% 
@@ -250,10 +221,14 @@ TED.sent.afinn.like <- TED.sent.afinn %>%
 
 TED.sent.afinn.like %>% ggplot(aes(x=likes,y=Score,color = cate))+
   geom_line() +
-  facet_wrap(~cate, nrow = 3,scales = 'free')
+  facet_wrap(~cate, nrow = 3,scales = 'free')+
+  theme(legend.position = 'bottom')
 ```
 
-### Videos' category and its sentiment   
+Since the number of likes for each video is relatively similar, and only individual videos have a large number of likes, we separate each category to observe the distribution of the number of likes and sentiment values. We can observe there are no obvious pattern as well. Only some videos in Climate change topic have negative sentiment and the less numbers of likes.      
+
+
+### Sentiment v.s. topics        
 
 ```{r}
 TED.sent.afinn.cate <- TED.sent.afinn %>% 
@@ -262,25 +237,33 @@ TED.sent.afinn.cate <- TED.sent.afinn %>%
 
 TED.sent.afinn.cate %>% 
   ggplot(mapping = aes(x = cate, y = Score))+
-  geom_boxplot()
+  geom_boxplot()+
+  labs(x="Topics")
 ```
+
+The sentiment values for each topic are relatively similar, and they are all in the upper-middle range - more positive. Among the topics of climate change and AI, the sentiment value of each video is more evenly distributed. AI topic has two outliners with lowest values, the most negative.     
 
 ### Videos' sentiment over years   
 
 ```{r}
 TED.sent.afinn.year <- TED.sent.afinn 
-TED.sent.afinn.year$posted <- year(my(TED.sent.afinn.year$posted))
+TED.sent.afinn.year$posted <- year(TED.sent.afinn.year$posted)
 
 TED.sent.afinn.year <- TED.sent.afinn.year %>% 
   group_by(cate,posted) %>% 
   summarize(Score = mean(value))
 
 TED.sent.afinn.year %>% ggplot(aes(x=posted,y=Score,color=cate))+
-  geom_line()
+  geom_line()+
+  theme(legend.position = 'bottom')+
+  labs(x="Posted Year")
 ```
 
+The talks on relationship topics have great fluctuations. Its mean sentiment value reached the lowest values before 2005 and around 2013. Climate change related topics have seen a decline in mean sentiment value in recent years. Yet, It is worth noting that the positive value of videos posted after 2020 is getting higher.    
 
 ### Sentiment Analysis using Valence-Shifters   
+
+Meantime, we would like to check if there is a huge difference after using valence-shifters.     
 
 ```{r}
 ## split by sentences
@@ -290,11 +273,11 @@ TED.senti <- sentiment(TED_sentiment_text)
 ## Prepare a tibble for the plot
 TED.senti <- as_tibble(TED.senti)
 ## Plot the sentiment curve by sentences
-TED.senti %>% 
-  # group_by(element_id) %>%
-  ggplot(aes(x = sentence_id, y = sentiment)) + 
-  geom_line() + 
-  facet_wrap(~ element_id) 
+# TED.senti %>% 
+#   # group_by(element_id) %>%
+#   ggplot(aes(x = sentence_id, y = sentiment)) + 
+#   geom_line() + 
+#   facet_wrap(~ element_id) 
 ```
 
 ```{r}
@@ -313,13 +296,21 @@ TED.sentdoc %>%
 ```{r}
 #check the difference between afinn method and Valence-Shifters
 #check the number of doc with score < 0 
-sum((TED.sentdoc$ave_sentiment <0) == T)
+
+nagative_VF <- sum((TED.sentdoc$ave_sentiment <0) == T)
 
 negative <- TED.sent.afinn %>% 
   group_by(title) %>% 
   summarize(Score = mean(value)) %>%
   filter(Score < 0 )
 
-length(negative$title)
+nagative <- length(negative$title)
+
+# [1] 19
+# [1] 31
 ```
+
+First, we can see that the sentiment values are distributed as similar as the one without using Valence-Shifters. After counting the number of videos transcripts with negative values, we found there are 31 videos having negative values before taking negative form into account, and 19 videos having negative values after considering negative form.    
+
+
 
