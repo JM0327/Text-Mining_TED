@@ -31,8 +31,8 @@ views_add <- views_add[!duplicated(views_add), ]
 # Combine tables
 TED <- left_join(TED,views_add, by = c("title"="page_title")) 
 TED <- TED %>% as_tibble(data.frame(TED)) %>%
-  select(views_times.x, cate, likes, tanscript, views_details)
-colnames(TED)[1] <- "posted"
+  select(title,views_times.x, cate, likes, tanscript, views_details)
+colnames(TED)[2] <- "posted"
 
 # Identify NA and remove
 # checkna <- TED[is.na(TED$tanscript), ]
@@ -73,6 +73,11 @@ TED$views_details <- as.numeric(views_time)
 TED$tanscript <- gsub("^.+?00:(.*)","\\1",TED$tanscript)
 TED$tanscript <- gsub("\r\n"," ",TED$tanscript)
 TED$tanscript <- gsub("[[:digit:]]"," ",TED$tanscript)
+
+# extract on version of TED for sentiment part
+TED_sentiment <- TED
+# no need for title column in the following analysis
+TED <- TED %>% select(-title)
 
 # Increase the number of instances: 20 sentences = 1 instance
 TED_full <- TED[0,]
