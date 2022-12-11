@@ -5,10 +5,10 @@
 # load the required packages
 packages <- c(
   "knitr","dplyr", "quanteda", "tokenizers", "quanteda.textstats", "lexicon",
-  "topicmodels","topicdoc","quanteda.textmodels",
+  "topicmodels","topicdoc","quanteda.textmodels", "ggwordcloud", "igraph",
   "tidytext", "bpa", "quanteda.textmodels","ggplot2","text2vec","ggrepel",
   "rvest", "RSelenium", "readr", "kableExtra", "lubridate", "stringr", #for map
-  "ranger","caret"
+  "ranger","caret", "quanteda.textplots"
 )
 
 if (!require("Require")) install.packages("Require")

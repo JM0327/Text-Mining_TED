@@ -1,0 +1,165 @@
+---
+title: "eda"
+author: "Manunpat"
+date: "2022-12-10"
+output: html_document
+---
+
+```{r,include=FALSE}
+source(here::here("scripts/setup.R"))
+```
+
+-Analysis of the word frequencies: compute and show frequencies and TF-IDF.
+-Comparison of the speeches in terms of lexical diversity
+-Comparison of two speeches in terms of key words (in the answer below Trump=target vs. Obama=reference).
+-Show links between terms (compute co-occurrences and try to build a network)
+
+# Plot of Frequencies and TF-IDF
+```{r}
+TED.freq %>% 
+  top_n(20, frequency) %>%
+  ggplot(aes(
+    x = reorder(feature, frequency),
+    y = frequency)) + 
+  geom_bar(stat = "identity") +
+  coord_flip() + #change x y axis
+  ylab("Frequency") + 
+  xlab("term")
+```
+
+
+```{r}
+
+textplot_wordcloud(TED.dfm) 
+
+```
+
+Probably can do with cate or link the result with cate
+```{r}
+TED.tfidf %>% 
+  tidy() %>% 
+  top_n(5, count) %>% #may change to top 10
+  ggplot(aes(x = term, y = count)) + 
+  geom_col() + 
+  coord_flip() + 
+  theme(axis.text.y = element_text(size = 4),
+        axis.ticks.y = element_blank())  + 
+  facet_wrap(~document, ncol = 2)
+```
+
+link to the number of sample we have in cate: numbers of Relationships vdo are the highest among the others 
+```{r}
+TED.tfidf %>% 
+  tidy() %>%
+  group_by(term) %>%
+  summarize(count = max(count)) %>% #use summarize to find max
+  ungroup() %>% 
+  arrange(desc(count)) %>%
+  top_n(20, count) %>%
+  ggplot(aes(x=reorder(term, count),
+             y = count)) + 
+  geom_bar(stat = "identity") + 
+  coord_flip() +
+  xlab("Max TF-IDF") + 
+  ylab("term")
+```
+
+should reduce the number of words?
+```{r}
+TED.freq %>% 
+  ggplot(aes(x = log10(docfreq),
+             y = log10(frequency))) + 
+  geom_text(aes(label=feature),
+            position=position_jitter(),
+            size = 3) + 
+  xlab("Document log-frequency") + 
+  ylab("log-frequency")
+```
+
+# Lexical Diversity
+TTR
+```{r}
+TED.dfm %>% textstat_lexdiv()
+
+TED.dfm %>% textstat_lexdiv() %>% 
+  ggplot(aes(reorder(document, -TTR),
+             TTR)) + 
+  geom_bar(stat="identity") +
+  xlab("Text")
+```
+
+Find another way to set up window or remove?
+```{r}
+TED.tk %>% textstat_lexdiv(
+  measure = "MATTR",
+  MATTR_window = 3)
+
+TED.tk %>% 
+  textstat_lexdiv(
+    measure = "MATTR",
+    MATTR_window = 3) %>% 
+  ggplot(aes(reorder(
+    document, -MATTR),
+    MATTR)) + 
+  geom_bar(stat="identity") +
+  xlab("Text")
+```
+
+# Keyness
+
+Find other text to plot
+```{r}
+TED.keyness <- textstat_keyness(
+  TED.dfm,
+  target = "text8")
+
+textplot_keyness(TED.keyness, labelsize = 3) 
+```
+
+# Link between Words
+
+```{r}
+TED.co <- fcm(TED.tk, 
+                context = "document", 
+                tri = FALSE)
+TED.co
+```
+
+```{r}
+#create index = words that have frequency > 8
+index <- TED.freq %>% 
+  filter(frequency > 1000) %>% 
+  data.frame() %>% 
+  select(feature)
+
+#then refer them to co occurance table
+TED.co <- TED.co[index$feature, index$feature]
+TED.co
+```
+
+
+```{r}
+TED.co[TED.co <= 2000] <- 0
+TED.co[TED.co > 2000] <- 1
+
+network <- graph_from_adjacency_matrix(
+  TED.co,
+  mode = "undirected",
+  diag = FALSE)
+plot(network,
+     layout = layout_with_kk)
+
+```
+
+# X-ray Plots
+
+Find a way to plot for a few text
+```{r}
+textplot_xray(
+  kwic(crude.tk, pattern = "can"),
+  kwic(crude.tk, pattern = "people"),
+  scale = "absolute")
+```
+
+
+
