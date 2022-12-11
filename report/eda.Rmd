@@ -70,11 +70,13 @@ TED.tfidf1 %>%
 
 
 # Lexical Diversity
-TTR
-```{r}
-TED.dfm %>% textstat_lexdiv()
+TTR: The lexical diversity analysis is conclusive for these data. We can see that text237, text131 have the highest richness of vocabulary among the other documents.
 
-TED.dfm %>% textstat_lexdiv() %>% 
+```{r}
+ttr_top <- TED.dfm1 %>% textstat_lexdiv() %>% arrange(desc(TTR)) %>% top_n(10, TTR)
+ttr_bottom <- TED.dfm1 %>% textstat_lexdiv() %>% arrange(desc(TTR)) %>% top_n(-10, TTR)
+
+TED.dfm1 %>% textstat_lexdiv() %>% 
   ggplot(aes(reorder(document, -TTR),
              TTR)) + 
   geom_bar(stat="identity") +
@@ -83,36 +85,41 @@ TED.dfm %>% textstat_lexdiv() %>%
 
 Find another way to set up window or remove?
 ```{r}
-TED.tk %>% textstat_lexdiv(
-  measure = "MATTR",
-  MATTR_window = 3)
-
-TED.tk %>% 
-  textstat_lexdiv(
-    measure = "MATTR",
-    MATTR_window = 3) %>% 
-  ggplot(aes(reorder(
-    document, -MATTR),
-    MATTR)) + 
-  geom_bar(stat="identity") +
-  xlab("Text")
+# TED.tk1 %>% textstat_lexdiv(
+#   measure = "MATTR",
+#   MATTR_window = 20)
+# 
+# TED.tk1 %>% 
+#   textstat_lexdiv(
+#     measure = "MATTR",
+#     MATTR_window = 20) %>% 
+#   ggplot(aes(reorder(
+#     document, -MATTR),
+#     MATTR)) + 
+#   geom_bar(stat="identity") +
+#   xlab("Text")
 ```
 
 # Keyness
+Do one chart per topic
 
-Find other text to plot
+AI
+we can see that the keyness of terms in text1 compared to all the others include unsupervised supervised patient treatment. 
 ```{r}
 TED.keyness <- textstat_keyness(
-  TED.dfm,
-  target = "text8")
+  TED.dfm1,
+  target = "text1")
 
 textplot_keyness(TED.keyness, labelsize = 3) 
 ```
 
 # Link between Words
 
+The larger the value the more often two words occur together (in documents).
+
+We now restrict the analysis to some terms as, otherwise, the result will be impossible to read. First, we restrict to the terms that have a frequency larger than 500
 ```{r}
-TED.co <- fcm(TED.tk, 
+TED.co <- fcm(TED.tk1, 
                 context = "document", 
                 tri = FALSE)
 TED.co
@@ -120,38 +127,32 @@ TED.co
 
 ```{r}
 #create index = words that have frequency > 8
-index <- TED.freq %>% 
-  filter(frequency > 1000) %>% 
+index <- TED.freq1 %>% 
+  filter(frequency > 500) %>% 
   data.frame() %>% 
   select(feature)
 
 #then refer them to co occurance table
-TED.co <- TED.co[index$feature, index$feature]
-TED.co
+x <- TED.co[index$feature, index$feature]
+x
 ```
 
+To make a chart is possible to read, we decide that for less than 4500 co-occurences, there is no link (larger than 4500, there is one link).
+“make”, "thing", "people" are the central terms that co-occurs a lot with the others. They are common words in TED talk. Due to 3 different topics, similar to the other charts, we do not expect to see the specific words for each topic in this analysis.
+
+For "climate", there is no co-occurance larger than 4500 but it's still in the word with frequency more than 500.
 
 ```{r}
-TED.co[TED.co <= 2000] <- 0
-TED.co[TED.co > 2000] <- 1
+x[x <= 4500] <- 0
+x[x > 4500] <- 1
 
 network <- graph_from_adjacency_matrix(
-  TED.co,
+  x,
   mode = "undirected",
   diag = FALSE)
 plot(network,
      layout = layout_with_kk)
 
-```
-
-# X-ray Plots
-
-Find a way to plot for a few text
-```{r}
-textplot_xray(
-  kwic(crude.tk, pattern = "can"),
-  kwic(crude.tk, pattern = "people"),
-  scale = "absolute")
 ```
 
 
