@@ -14,7 +14,7 @@ TED.coo <- fcm(TED.tk,
                tri = FALSE) 
 head(TED.coo)
 ```
-For example, the co-occurrence of word *artificial* and *intelligence* is large(162). But the co-occurrence of word *fly* and *intelligence* is very small(0). 
+For example, the co-occurrence of word *artificial* and *intelligence* is large(170). But the co-occurrence of word *fly* and *intelligence* is very small(0). 
 
 ```{r}
 set.seed(123)
@@ -26,7 +26,7 @@ TED.we <- t(TED.glove$components) + TED.we# unique representation
 ```
 
 ```{r}
-index <- textstat_frequency(dfm(TED.tk))[1:150, ]$feature
+index <- textstat_frequency(dfm(TED.tk))[1:100, ]$feature
 index ## words with the 150 largest frequencies
 ```
 
@@ -40,22 +40,23 @@ ggplot(data.for.plot,
   geom_text_repel(max.overlaps = 100) + 
   theme_void() 
 ```
-Words that are close on the map are often used together (e.g. “ai”, “robot”, “problem”).
+Words that are close on the map are often used together (e.g. "ai" and "technology", “relationship” and "friend").
 
 ```{r}
-TED.we <- as.data.frame(TED.we)
-word <- rownames(TED.we)
-TED.we <- cbind(word,TED.we)
-e <- c(1:15431)
-row.names(TED.we) <- e
+TED.we.df <- as.data.frame(TED.we)
+word <- rownames(TED.we.df)
+TED.we.df <- cbind(word,TED.we.df)
+e <- c(1:15045)
+row.names(TED.we.df) <- e
 ```
 
 another kind of plot
 ```{r}
-ggplot(TED.we,aes(x=V1,y=V2))+
-  geom_text_repel(data = subset(TED.we, V2 <=-1.5|V2>2|V1>1.5),
+ggplot(TED.we.df,aes(x=V1,y=V2))+
+  geom_text_repel(data = subset(TED.we.df, V1 <=-1.8|V2>3|V1>2),
             mapping = aes(label = word),
-            hjust = "inward") +
+            hjust = "inward",
+            max.overlaps = 100) +
   geom_point(color="grey")
 ```
 
@@ -83,7 +84,7 @@ head(TED.de) ## document vectors
 ```{r}
 TED.de <- as.data.frame(TED.de)
 TED.de.source <- TED_full %>% 
-  select(2,3) %>% cbind(TED.de)
+  select(2,3,4) %>% cbind(TED.de) 
 
 ggplot(data=TED.de.source,mapping = aes(
   x=V1,
@@ -121,6 +122,7 @@ table(TED.tr$cate)
 
 
 ```{r}
+set.seed(123)
 n2 <- min(table(TED.tr$cate)) ## 327
 
 TED.Emb.tr.1 <- filter(TED.Emb.tr, cate=="1") ## the category 1
@@ -134,31 +136,31 @@ TED.Emb.tr.subs <- data.frame(rbind(TED.Emb.tr.1[index.1,],
 ```
 
 ```{r}
+set.seed(123)
 TED.Emb.fit <- ranger(TED.Emb.tr.subs$cate~., 
                       data = TED.Emb.tr.subs)
 pred.Emb.te <- predict(TED.Emb.fit, TED.Emb.te)
 confusionMatrix(data=pred.Emb.te$predictions, reference = TED.Emb.te$cate)
 ```
 
-# Combine LSA and embeding for supervised learning
+# Combine LSA(TF-IDF), embeding, likes, and views for supervised learning
 
 ```{r}
 TED.de.source <- TED.de.source %>% 
   rename(V5=V1,V6=V2)
-TED.LSA.Emb <- TED.lsa.source %>% 
+TED.LSA.Emb <- TED.lsa2.source %>% 
   cbind(TED.de.source) %>% 
   select(-7)
 ```
 
 
 ```{r}
-set.seed(123)
-
 TED.Com.tr <- TED.LSA.Emb[index.tr,]
 TED.Com.te <- TED.LSA.Emb[-index.tr,]
 ```
 
 ```{r}
+set.seed(123)
 TED.Com.tr.1 <- filter(TED.Com.tr, cate=="1") ## the category 1
 TED.Com.tr.2 <- filter(TED.Com.tr, cate=="2") ## the category 2
 TED.Com.tr.3 <- filter(TED.Com.tr, cate=="3") ## the category 3
@@ -171,8 +173,9 @@ TED.Com.tr.subs <- data.frame(rbind(TED.Com.tr.1[index.1,],
 
 
 ```{r}
+set.seed(123)
 TED.Com.fit <- ranger(TED.Com.tr.subs$cate~.,
-                      data = TED.Com.tr.subs[2:9])
+                      data = TED.Com.tr.subs[2:10])
 pred.Com.te <- predict(TED.Com.fit, TED.Com.te)
 confusionMatrix(data=pred.Com.te$predictions, reference = TED.Com.te$cate)
 ```
