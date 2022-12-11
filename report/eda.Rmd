@@ -15,6 +15,7 @@ source(here::here("scripts/setup.R"))
 -Show links between terms (compute co-occurrences and try to build a network)
 
 # Plot of Frequencies and TF-IDF
+-because we have 3 different topics so we dont expect topic specific words in the most frequent used terms. Altho we can see some words related to our topic like love, ai, kind, world, human
 ```{r}
 TED.freq %>% 
   top_n(20, frequency) %>%
@@ -38,7 +39,7 @@ Probably can do with cate or link the result with cate
 ```{r}
 TED.tfidf %>% 
   tidy() %>% 
-  top_n(5, count) %>% #may change to top 10
+  top_n(10, count) %>% #may change to top 10
   ggplot(aes(x = term, y = count)) + 
   geom_col() + 
   coord_flip() + 

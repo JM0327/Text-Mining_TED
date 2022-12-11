@@ -128,7 +128,7 @@ TED_full$tanscript <- trim_ws(TED_full$tanscript)
 
 ```
 
-# Tokenization
+# Tokenization from TED_full for unsupervised and supervised analyses
 
 I aim to create DTM, TFIDF tables by quanteda package. However, I also token TED_full by tidytext as well 
 ```{r}
@@ -156,24 +156,7 @@ TED.tk
 
 ```
 
-```{r}
-# Tidytext
-# TED.tb <- TED_full %>% select(text, tanscript)
-# TED.tb <- as_tibble(data.frame(TED.tb))
-# 
-# TED.tok <- unnest_tokens(
-#   tbl = TED.tb, 
-#   output = "word", #column name we want to have
-#   input = "tanscript", #column name
-#   to_lower = TRUE,
-#   strip_punct = TRUE,  
-#   strip_numeric = TRUE) 
-# 
-# head(TED.tok, 10)
-
-```
-
-# DTM
+## DTM
 
 ```{r}
 TED.dfm <- dfm(TED.tk)
@@ -185,31 +168,49 @@ TED.freq <- textstat_frequency(TED.dfm)
 head(TED.freq, 20)
 ```
 
-# TF-IDF
+## TF-IDF
 
 ```{r}
 # Quenteda
 TED.tfidf <- dfm_tfidf(TED.dfm)  
 sort(apply(TED.tfidf, 2, max), decreasing = TRUE)[1:10]
 
-# Tidytext
-# TED.fr <- TED.tok %>% 
-#   group_by(text, word) %>% 
-#   summarize(n = n()) %>% 
-#   arrange(desc(n))
+```
 
-# TED.tfidf_tidy <- TED.fr %>%  
-#   bind_tf_idf(term = word,
-#               document = text,
-#               n = n) %>%
-#   arrange(desc(n))
-# head(TED.tfidf_tidy, n = 100) %>% flextable() %>% autofit()
-# 
-# head(bind_tf_idf(
-#   tbl = TED.fr,
-#   term = word,
-#   document = Document,
-#   n = n))
+# Tokenization from TED for EDA
+
+```{r}
+# Quanteda
+TED.cp1 <- corpus(TED$tanscript)
+summary(TED.cp1)
+
+TED.tk1 <- tokens(
+  TED.cp1, 
+  remove_numbers = TRUE, 
+  remove_punct = TRUE, 
+  remove_symbols = TRUE, 
+  remove_separators = TRUE)
+
+TED.tk1 <- TED.tk1 %>% 
+  tokens_tolower() %>% 
+  tokens_remove(c(stopwords(source = "smart"), "applaud", "laughter"))
+
+TED.tk1 <- tokens_replace(
+  TED.tk1,
+  pattern = hash_lemmas$token, 
+  replacement = hash_lemmas$lemma)
+
+TED.tk1
+
+
+TED.dfm1 <- dfm(TED.tk1)
+head(TED.dfm1)
+TED.freq1 <- textstat_frequency(TED.dfm1)
+head(TED.freq1, 20)
+TED.tfidf1 <- dfm_tfidf(TED.dfm1)  
+sort(apply(TED.tfidf1, 2, max), decreasing = TRUE)[1:10]
 
 ```
+
+
 
