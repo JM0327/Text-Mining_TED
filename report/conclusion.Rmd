@@ -1,0 +1,9 @@
+---
+title: "conclusion"
+author: "Manunpat"
+date: "2022-12-11"
+output: html_document
+---
+
+# Conclusion
+# Further study and Limitation
