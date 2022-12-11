@@ -1,0 +1,22 @@
+---
+title: "Intro"
+author: "Manunpat"
+date: "2022-12-11"
+output: html_document
+---
+
+## Executive summary
+
+### Research goal
+### Methodology
+### Main Takeaways
+### Conclusion
+
+## Introduction
+### Overview and motivation
+
+There are several ways to learn and share knowledge nowadays. One of the most popular forms of learning and sharing is a short video (video clips). We are all interested in this method and would like to apply both machine-learning and text-mining techniques to real-world data to analyse video classification from its transcript or subtitle. At the beginning of the project, we had many streaming websites and video podcasts on the table, such as YouTube, BBC Learning English, Apple podcasts, and TED talk. All of them are built as friendly user platforms that we are all familiar with. TED was finally selected for this project due to its provided data we could employ in our study. TED also contains a wide range of videos in terms of topics, languages, and length of videos. More importantly, each video on the TED talk website is labelled by a relevant category and provides a text transcript.
+
+Therefore, the goal of this project is to, first, use sentiment analysis to identify opinions, judgements or feelings about what TED speakers have said about each TED talk topic. Secondly, we aim to use topic analysis to analyse and cluster the videos and compare them with the categories labelled by the TED talk website. Lastly, we will apply a text classification technique to predict the topics of the new videos.
+
+The remainder of the article is organized as follows. Section 2 describes the data and the web scraping. Section 3 presents tokenization. Section 4 presents sentiment analysis. Section 5 performs topic modelling analysis. Section 6 performs embedding analysis. Section 7 performs the supervised analysis. The main results of this study and a brief limitation and possible further study of the research are then presented in Section 8. 
