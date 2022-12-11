@@ -7,18 +7,18 @@ packages <- c(
   "knitr","dplyr", "quanteda", "tokenizers", "quanteda.textstats", "lexicon",
   "topicmodels","topicdoc","quanteda.textmodels", "ggwordcloud", "igraph",
   "tidytext", "bpa", "quanteda.textmodels","ggplot2","text2vec","ggrepel",
-  "rvest", "RSelenium", "readr", "kableExtra", "lubridate", "stringr", #for map
+  "rvest", "RSelenium", "readr", "kableExtra", "lubridate", "stringr",
   "ranger","caret", "quanteda.textplots","flextable","sentimentr", 
-  "treemapify" # for plot
+  "treemapify", "here"
 )
 
-if (!require("Require")) install.packages("Require")
-Require::Require(packages, require = FALSE)
-
+# if (!require("Require")) install.packages("Require")
+# Require::Require(packages, require = FALSE)
+# 
 purrr::walk(packages, library, character.only = TRUE)
-
-## The following sets a few option for nice reports ##
-
+# 
+# ## The following sets a few option for nice reports ##
+# 
 # knitr options
 opts_chunk$set(
   echo = FALSE,

@@ -4,6 +4,8 @@ author: "Jiaming Huang, Ting Yang, and Manunpat Sirijaturaporn"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   html_document:
+    toc: true
+    toc_float: true
     theme:
       bootswatch: lux
 ---
@@ -13,6 +15,6 @@ text-align: justify}
 </style>
 
 
-```{r child = c('intro.Rmd', 'web.Rmd', 'tokenization.Rmd', 'eda.Rmd', 'sentiment.Rmd', 'Topic modeling.Rmd', 'Embeding.Rmd', 'supervised.Rmd', 'conclusion.Rmd')}
+```{r child = c('intro.Rmd', 'tokenization.Rmd', 'eda.Rmd', 'sentiment.Rmd', 'Topic modeling.Rmd', 'Embeding.Rmd', 'supervised.Rmd', 'conclusion.Rmd')}
 
 ```

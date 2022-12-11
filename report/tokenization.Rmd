@@ -13,7 +13,7 @@ source(here::here("scripts/setup.R"))
 ....
 Unfortunately, we found 34 videos in total do not have information in transcript. One video is from AI while 22 videos and 11 videos are from Climate change and Relationships categories, respectively. 
 ....
-```{r}
+```{r, include=FALSE}
 # Import data
 TED <- read_csv(here::here("data/TED.csv")) #330 obs
 views_add <- read_csv(here::here("data/add_details_1.csv")) #310 obs
