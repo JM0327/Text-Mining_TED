@@ -17,7 +17,7 @@ source(here::here("scripts/setup.R"))
 # Plot of Frequencies and TF-IDF
 -because we have 3 different topics so we dont expect topic specific words in the most frequent used terms. Altho we can see some words related to our topic like love, ai, kind, world, human
 ```{r}
-TED.freq %>% 
+TED.freq1 %>% 
   top_n(20, frequency) %>%
   ggplot(aes(
     x = reorder(feature, frequency),
@@ -31,13 +31,13 @@ TED.freq %>%
 
 ```{r}
 
-textplot_wordcloud(TED.dfm) 
+textplot_wordcloud(TED.dfm1) 
 
 ```
 
-Probably can do with cate or link the result with cate
+Text 12: EM = Elon Musk, CA = Chris Anderson: Both words have high TFIDF because they are specific to this text.
 ```{r}
-TED.tfidf %>% 
+TED.tfidf1 %>% 
   tidy() %>% 
   top_n(10, count) %>% #may change to top 10
   ggplot(aes(x = term, y = count)) + 
@@ -46,11 +46,14 @@ TED.tfidf %>%
   theme(axis.text.y = element_text(size = 4),
         axis.ticks.y = element_blank())  + 
   facet_wrap(~document, ncol = 2)
+
+#TED$tanscript[12]
+
 ```
 
 link to the number of sample we have in cate: numbers of Relationships vdo are the highest among the others 
 ```{r}
-TED.tfidf %>% 
+TED.tfidf1 %>% 
   tidy() %>%
   group_by(term) %>%
   summarize(count = max(count)) %>% #use summarize to find max
@@ -65,17 +68,6 @@ TED.tfidf %>%
   ylab("term")
 ```
 
-should reduce the number of words?
-```{r}
-TED.freq %>% 
-  ggplot(aes(x = log10(docfreq),
-             y = log10(frequency))) + 
-  geom_text(aes(label=feature),
-            position=position_jitter(),
-            size = 3) + 
-  xlab("Document log-frequency") + 
-  ylab("log-frequency")
-```
 
 # Lexical Diversity
 TTR
