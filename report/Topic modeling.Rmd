@@ -8,15 +8,15 @@ output: html_document
 # LSA
 
 ## LSA on TF
-First, we build the LSA object and use 4 dimensions.And we check the *Doc-topic sim*, *Topic strength* and *Terms-topic sim*.
+First, we build the LSA object and use 4 dimensions. Latent Semantic Analysis(LSA) decomposes this DTM(TED.dfm) into 3 matrices ($M = U\Sigma V^{t}$), centred around 4 topics. We check the 3 matrices: *U:Doc-topic sim*, *Σ:Topic strength* and *V:Terms-topic sim*. 
 ```{r}
 TED.lsa <- textmodel_lsa(x = TED.dfm,nd = 4)
 ```
 
-```{r}
+```{r Doc-topic sim}
 head(TED.lsa$docs)
 ```
-This table shows the link between each text and each topic. For example, text1 most relevant to dimension 2(topic 2).
+This Doc-topic sim table shows the link between each text and each topic. For example, text1 most relevant to dimension 2(topic 2).
 
 ```{r}
 head(TED.lsa$sk)
@@ -27,10 +27,22 @@ These values represent the strength of each topic. Except for the topic 1, topic
 ```{r}
 head(TED.lsa$features)
 ```
-This table shows the link between each term and each topic. For example, the term "artificial" most relevant to dimension 2(topic 2).
+This Terms-topic sim table shows the link between each term and each topic. For example, the term "artificial" most relevant to dimension 2(topic 2).
 
 
-The first dimension is often correlated to (of little information and often not represented.) the document length and the frequency of the term. So we check the top words for dimension2, 3, and 4.
+The first dimension of LSA is often correlated to (of little information and often not represented) the document length and the frequency of the term. We build a scatter-plot between the document length and Dimension 1 to demonstrate it.
+```{r}
+doc.freq <- ntoken(TED.tk) # row-sum of the DTM.
+data.frame(doc.freq,
+           dim1 = TED.lsa$docs[, 1]) %>% 
+  ggplot(aes(doc.freq, dim1)) + 
+  geom_point() + 
+  geom_smooth(method="lm") +
+  xlab("Number of tokens") + 
+  ylab("LSA dim. 1")
+```
+
+Then we check the top words for dimension2, 3, and 4.
 ```{r}
 n.terms <- 5
 ## For Dimension 2
@@ -43,6 +55,7 @@ w.top.d3 <- c(w.order[1:n.terms], rev(rev(w.order)[1:n.terms]))
 w.order <- sort(TED.lsa$features[,4], decreasing = TRUE)
 w.top.d4 <- c(w.order[1:n.terms], rev(rev(w.order)[1:n.terms]))
 ```
+
 
 ```{r}
 w.top.d2
@@ -74,7 +87,8 @@ ggplot(data=TED.lsa.source,mapping = aes(
   color=cate))+
   geom_point()+
   labs(x = "dimension2",
-    y = "dimension3")+
+       y = "dimension3",
+       title = "Distribution of texts in different category on the LSA(TF) dimension 2 and 3")+
   scale_colour_discrete(
     name="Category",
     breaks=c("1","2","3"),
@@ -91,7 +105,8 @@ ggplot(data=TED.lsa.source,mapping = aes(
   color=cate))+
   geom_point()+
   labs(x = "dimension3",
-    y = "dimension4")+
+       y = "dimension4",
+       title = "Distribution of texts in different category on the LSA(TF) dimension 3 and 4")+
   scale_colour_discrete(
     name="Category",
     breaks=c("1","2","3"),
@@ -99,7 +114,8 @@ ggplot(data=TED.lsa.source,mapping = aes(
   )
 ```
 Second plot:x-axis is dimension 3 and y-axis is dimension4.
-According to this plot, most texts of category "AI" are positively associated with dimension4.
+According to this plot, most texts of category "AI" are positively associated with dimension4, most of the texts of category "Climate change" are negatively associated with dimension3, and most of the texts of category "Relationships" are positively associated with dimension3.
+
 
 ## LSA on TF-IDF
 Repeat the LSA with the TF-IDF as DTM. Check whether the weighted frequency can make the LSA results better interpret texts.
@@ -120,6 +136,7 @@ head(TED.lsa2$sk)
 ```{r}
 head(TED.lsa2$features)
 ```
+
 We also check the top words for dimension2, 3, and 4 of LSA on TF-IDF.
 ```{r}
 ## For Dimension 2
@@ -132,6 +149,7 @@ w2.top.d3 <- c(w2.order[1:n.terms], rev(rev(w2.order)[1:n.terms]))
 w2.order <- sort(TED.lsa2$features[, 4], decreasing = TRUE)
 w2.top.d4 <- c(w2.order[1:n.terms], rev(rev(w2.order)[1:n.terms]))
 ```
+
 
 ```{r}
 w2.top.d2
@@ -160,7 +178,8 @@ ggplot(data=TED.lsa2.source,mapping = aes(
   color=cate))+
   geom_point()+
   labs(x = "dimension2",
-    y = "dimension3")+
+       y = "dimension3",
+       title = "Distribution of texts in different category on the LSA(TF-IDF) dimension 2 and 3")+
   scale_colour_discrete(
     name="Category",
     breaks=c("1","2","3"),
@@ -172,12 +191,13 @@ According to this plot, most of the texts of category "Climate change" are posit
 
 ```{r}
 ggplot(data=TED.lsa2.source,mapping = aes(
-  x=V2,
+  x=V3,
   y=V4,
   color=cate))+
   geom_point()+
-  labs(x = "dimension2",
-    y = "dimension4")+
+  labs(x = "dimension3",
+       y = "dimension4",
+       title = "Distribution of texts in different category on the LSA(TF-IDF) dimension 3 and 4")+
   scale_colour_discrete(
     name="Category",
     breaks=c("1","2","3"),
@@ -185,23 +205,24 @@ ggplot(data=TED.lsa2.source,mapping = aes(
   )
 ```
 Second plot:x-axis is dimension 3 and y-axis is dimension4.
-According to this plot, most texts of category "AI" are positively associated with dimension4. Part of texts of category "AI" are negatively associated with dimension 4 and part of texts of category "AI" are positively associated with dimension 4.
+According to this plot, most texts of category "AI" are associated with dimension4. But part of texts of category "AI" are negatively associated with dimension 4 and part of texts of category "AI" are positively associated with dimension 4. The pattern is not very clear.
 
 
 # LDA
-We now turn to Latent Dirichlet Association (LDA). For the illustration, we will make 4 topics again.
+We now turn to Latent Dirichlet Association (LDA). LDA is a Bayesian model for topic modeling: generative model. It is also to discover topics in a collection of documents. For the illustration, we will make 4 topics again.
 ```{r}
 TED.LDA <- LDA(
   convert(TED.dfm, to = "topicmodels"),
-  k = 4)
+  k = 4,
+  control = list(seed = 123))
 ```
 
-First, I check the top5 words in each dimensions.
+First, I check the top5 words in each dimension. For example, the top5 terms for topic 1 are "climate", "year", "make", "change" and "energy".
 ```{r}
 topicmodels::terms(TED.LDA, 5)
 ```
 
-Then I create a table to show the number of documents in each dimension.
+Then I create a table to show the number of documents in each dimension. For example, topic 3 has the highest number of documents(439). 
 ```{r}
 topicmodels::topics(TED.LDA)%>% table()
 ```
@@ -212,9 +233,9 @@ topic_diagnostics(
   topic_model = TED.LDA, 
   dtm_data = convert(TED.dfm, to = "topicmodels"))
 ```
-Topic 4 has the largest prominence.
-Topic 1 has the largest topic coherence and Topic 2 has the smallest topic coherence.
-Topic 2 has the largest topic exclusivity and Topic 1 has the smallest topic exclusivity.
+Topic 3 has the largest prominence.
+Topic 4 has the largest topic coherence and Topic 1 has the smallest topic coherence.
+Topic 1 has the largest topic exclusivity and Topic 4 has the smallest topic exclusivity.
 
 
 ```{r}
@@ -236,10 +257,10 @@ beta.long %>%
     axis.text.x = element_text(size = 8),
     strip.text = element_text(size = 8))
 ```
-Topic1 focus on terms like "people", "work", "make", "thing". 
-Topic2 focus on terms like"year", "climate", "water", "energy". 
-Topic3 focus on terms like"love", "life", "feel", "time". 
-Topic4 focus on terms like "human", "ai", "robot", "make". 
+Topic1 focus on terms like "climate", "change", "energy", "water". 
+Topic2 focus on terms like"people", "ai", "work", "technology". 
+Topic3 focus on terms like"love", "life", "woman", "relationship". 
+Topic4 focus on terms like "robot", "thing", "brain", "human". 
 
 ```{r}
 
@@ -261,7 +282,7 @@ gamma.long %>% ggplot(mapping = aes(x=document,y=gamma,fill=cate))+
   
 ```
 
-The *Climate change* related documents mainly talk about Topic 2. 
+The *Climate change* related documents mainly talk about Topic 1. 
 The *Relationships* related documents mainly talk about Topic3. 
-The *AI* related documents mainly talk about Topic4. 
+The *AI* related documents mainly talk about Topic 2 and Topic4. 
 
