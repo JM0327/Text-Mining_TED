@@ -9,16 +9,21 @@ output: html_document
 source(here::here("scripts/setup.R"))
 ```
 
-# Cleanning and parsing data
-....
-Unfortunately, we found 34 videos in total do not have information in transcript. One video is from AI while 22 videos and 11 videos are from Climate change and Relationships categories, respectively. 
-....
+# III Tokenization
+## Wrangling and parsing data
+
+After scraping data from TED.com website, we imported two tables saved in .csv format in the data folder, namely TED.csv and add_details_1.csv. The original tables consist of 330 observations with 11 variables and 310 observations with 2 variables, respectively. 
 ```{r, include=FALSE}
 # Import data
 TED <- read_csv(here::here("data/TED.csv")) #330 obs
 views_add <- read_csv(here::here("data/add_details_1.csv")) #310 obs
+
+kable(TED[1:10,], caption = "The original TED table") %>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "250px")
 ```
 
+We then removed duplicated observations for both tables and combined two tables by title column named *TED*. TED table currently contains 324 observations with 12 variables. However, we would like to focus just 6 interesting variables, which were title of videos, when the videos were posted, topic of videos, the number of likes for videos, transcript, and the number of views of videos, for our further analyses, so we selected them and removed the rest. We also spotted 34 NAs in *TED* and they were removed later. Therefore, *TED* have 286 observations which are 103 videos from AI, 86 videos from Climate change, and 97 videos from Relationships.
 ```{r}
 # Delete duplicate rows of TED
 sum(duplicated(TED)) #6
@@ -31,7 +36,7 @@ views_add <- views_add[!duplicated(views_add), ]
 # Combine tables
 TED <- left_join(TED,views_add, by = c("title"="page_title")) 
 TED <- TED %>% as_tibble(data.frame(TED)) %>%
-  select(title,views_times.x, cate, likes, tanscript, views_details)
+  select(title, views_times.x, cate, likes, tanscript, views_details)
 colnames(TED)[2] <- "posted"
 
 # Identify NA and remove
@@ -42,7 +47,15 @@ colnames(TED)[2] <- "posted"
 #   mutate(diff = Freq.x-Freq.y)
 TED <- na.omit(TED) #286
 catenum <- data.frame(table(TED$cate))
+colnames(catenum) <- c("Topics", "Count")
 
+kable(catenum[,], caption = "") %>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "250px")
+```
+
+
+```{r}
 # Parse data
 TED$posted <- my(TED$posted)
 TED$cate[which(TED$cate=="AI")] <- "1"
