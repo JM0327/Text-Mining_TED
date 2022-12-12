@@ -21,9 +21,13 @@ views_add <- read_csv(here::here("data/add_details_1.csv")) #310 obs
 kable(TED[1:10,], caption = "The original TED table") %>%
    kable_styling(bootstrap_options = "bordered") %>%
    kableExtra::scroll_box(width = "100%", height = "250px")
+
+kable(TED[1:10,], caption = "The original add_details_1 table") %>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "250px")
 ```
 
-We then removed duplicated observations for both tables and combined two tables by title column named *TED*. TED table currently contains 324 observations with 12 variables. However, we would like to focus just 6 interesting variables, which were title of videos, when the videos were posted, topic of videos, the number of likes for videos, transcript, and the number of views of videos, for our further analyses, so we selected them and removed the rest. We also spotted 34 NAs in *TED* and they were removed later. Therefore, *TED* have 286 observations which are 103 videos from AI, 86 videos from Climate change, and 97 videos from Relationships.
+We then removed duplicated observations for both tables and combined two tables by title column and named it as **TED**. TED table currently contains 324 observations with 12 variables. However, we would like to focus just 6 interesting variables, which were title of videos, when the videos were posted, topic of videos, the number of likes for videos, transcript, and the number of views of videos, for our further analyses, so we selected them and removed the rest. We also spotted 34 NAs in **TED** and they were removed later. Therefore, **TED** have 286 observations which are 103 videos from AI, 86 videos from Climate change, and 97 videos from Relationships.
 ```{r}
 # Delete duplicate rows of TED
 sum(duplicated(TED)) #6
@@ -54,6 +58,9 @@ kable(catenum[,], caption = "") %>%
    kableExtra::scroll_box(width = "100%", height = "250px")
 ```
 
+Subsequently, it turned to data parsing step. We converted posting time, the number of likes, the number of views to be in the appropriate format for further analyses. For example, the posting time for the first video, *"How does artificial intelligence learn?"*, was Mar 2021 at the original TED table. It was converted to be 2021-03-01. 
+
+For the transcript, there were the number of translated languages and the details of the translation at the beginning of the transcript every video. In this project, we focus only the actual transcript. Thus, we removed this part out of the transcript.  
 
 ```{r}
 # Parse data
@@ -91,7 +98,16 @@ TED$tanscript <- gsub("[[:digit:]]"," ",TED$tanscript)
 TED_sentiment <- TED
 # no need for title column in the following analysis
 TED <- TED %>% select(-title)
+```
 
+Due to the limited number of available videos within the selected topics on TED website, we could not scrape more videos for unsupervised and supervised learning analyses, and we would like to obtain a robust model as well as avoid the overfitting problem. Therefore, we decided to increase the number of our observations by setting up a window of 20 sentences to be equal to 1 observation as we noticed that the transcripts each video comprised of more than 20 sentences. We wrote a for loop to separate the    
+
+
+
+
+We also converted the topic names, AI, Climate change, and Relationships, to be numbers 1, 2, and 3. This would be easy to keep track of the videos in supervised and unsupervised learning analyses.
+
+```{r}
 # Increase the number of instances: 20 sentences = 1 instance
 TED_full <- TED[0,]
 TED_full$subcate <- TED_full$cate #new col but same type
