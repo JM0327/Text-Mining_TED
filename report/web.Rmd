@@ -57,7 +57,6 @@ remDr$mouseMoveToLocation(webElement=drop_down)
 remDr$click(2)
 remDr$findElement(using = "xpath", '//*[@id="filters-sort"]/optgroup/option[2]')$clickElement()
 
-
 #capture all article titles
 #since there are no independent list of all video that we wanteed to analyze before in the youtube channel, so i first crawl the title of each video over BBC website, then search on youtube
 title <- read_html(html_page) %>% 
@@ -73,7 +72,8 @@ Sys.sleep(2)
 
 
 ```{r}
-#waitforscrape <- title %>% filter(!title %in% TED_2$title)
+# when the function interrupted, start this to scrape the left videos. 
+# waitforscrape <- title_all %>% filter(!title %in% TED$title)
 ```
 
 
@@ -127,7 +127,7 @@ browse_result <- data.frame(
   "title" = title,
   "speaker" = speaker,
   "views_times" = views_times,
-  "cate" = "Relationships"
+  "cate" = "Climate Change"
 )
 # first_page <- remDr$findElement(using = 'xpath', '//*[@id="browse-results"]/div[2]/div/a[2]')
 #   remDr$mouseMoveToLocation(webElement=first_page)
@@ -136,9 +136,14 @@ browse_result <- data.frame(
 # html_page <- remDr$getPageSource()[[1]]
 ```
 
+```{r}
+# save title name list temporary, ideally export to save
+title_all <- browse_result
+#fwrite(title_all, file = here::here("data/title_all.csv"))
+```
+
 
 ```{r}
-
 #click in each video to capture infos
 introduction <- as.character()
 likes <- as.character()
@@ -208,14 +213,18 @@ video_info <- data.frame(
 )
 ```
 
+```{r}
+# save what have done temporary
+TED_2 <- video_info
+```
 
 ```{r}
-TED <- left_join(title_all, TED_3, by="title")
+# merge with the title name list
+TED <- left_join(title_all, TED_2, by="title")
 ```
 
 ```{r}
 fwrite(TED, file = here::here("data/TED.csv"))
-
 ```
 
 ```{r, include=FALSE}
