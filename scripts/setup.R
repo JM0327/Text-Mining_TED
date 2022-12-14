@@ -7,7 +7,7 @@ packages <- c(
   "knitr","dplyr", "quanteda", "tokenizers", "quanteda.textstats", "lexicon",
   "topicmodels","topicdoc","quanteda.textmodels", "ggwordcloud", "igraph",
   "tidytext", "bpa", "quanteda.textmodels","ggplot2","text2vec","ggrepel",
-  "rvest", "RSelenium", "readr", "kableExtra", "lubridate", "stringr",
+  "patchwork","rvest", "RSelenium", "readr", "kableExtra", "lubridate", "stringr",
   "ranger","caret", "quanteda.textplots","flextable","sentimentr", 
   "treemapify", "here"
 )
