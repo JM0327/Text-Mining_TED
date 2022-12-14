@@ -5,5 +5,8 @@ date: "2022-12-11"
 output: html_document
 ---
 
-# Conclusion
+# Conclusion      
+
+From the sentiment analysis, we could clearly see that TED talks always posts positive speaks, which can inspire audiences to face challenges and consider the issues from a positive side. On the other hand, we can observe that this situation does not distinguish between the categories of videos, so to some extent there is the lack of diversity in term of the videos' sentiment.    
+
 # Further study and Limitation
