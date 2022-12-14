@@ -9,7 +9,7 @@ output: html_document
 source(here::here("scripts/setup.R"))
 ```
 
-# III Tokenization
+# 3. Tokenization
 ## Wrangling and parsing data
 
 After scraping data from TED.com website, we imported two tables saved in .csv format in the data folder, namely TED.csv and add_details_1.csv. The original tables consist of 330 observations with 11 variables and 310 observations with 2 variables, respectively. 

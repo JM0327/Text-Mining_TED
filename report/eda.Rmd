@@ -9,6 +9,8 @@ output: html_document
 source(here::here("scripts/setup.R"))
 ```
 
+# 4. EDA   
+
 -Analysis of the word frequencies: compute and show frequencies and TF-IDF.
 -Comparison of the speeches in terms of lexical diversity
 -Comparison of two speeches in terms of key words (in the answer below Trump=target vs. Obama=reference).

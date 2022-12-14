@@ -7,7 +7,7 @@ output: html_document
 source(here::here("scripts/setup.R"))
 ```
 
-# Sentiment analysis  
+# 5. Sentiment analysis  
 
 In this part, we use two dictionary: AFINN, NRC and method of Valence-Shifters to do sentiment analysis for every video's transcript, which means we don't split the transcript by every 20 sentences. It might be better to see if the sentiment of video would influence the other features. Here, we have following hypothesis:   
 
@@ -33,7 +33,7 @@ TED.tok <- unnest_tokens(
 TED.tok <- TED.tok %>% filter(word != "laughter" | word != "applaud")
 ```
 
-## Sentiment Based    
+## 5.1 Sentiment Based    
 
 First, we use NRC method to check the sentiment description of each videos transcript. as it's sentiment based method, we would like to only check the relationship with videos' topics and their likes.   
 
@@ -51,7 +51,7 @@ head(TED.sent.nrc, 5) %>% flextable() %>% autofit()
 
 ```
 
-### Sentiment v.s. Likes     
+### 5.1.1 Sentiment v.s. Likes     
 
 Since there are near to 300 transcript (videos), we would like to extract 20 videos with the most likes and the least likes, respectively.         
 
@@ -148,7 +148,7 @@ In this part, we did NRC method in two different ways, one without scaling and a
 
 No matter in which way we can see that there are no obvious difference among the videos with the most likes and the least likes, in terms of their likes. Positive and anticipation appearing in everywhere. In some top 20 videos, we could also see the negative and fear sentiment with relatively high levels.       
 
-### Sentiment v.s. Topics    
+### 5.1.2 Sentiment v.s. Topics    
 
 we would like to check what is the more frequent sentiment appearing in each topics. we suppose the topic like climate change is more related to negative or fear sentiment, and for the topic like AI, we could see anticipation or positive sentiment more frequent.   
 
@@ -174,7 +174,7 @@ As we assume, The topic of AI is often accompanied by positive and anticipation,
 
 In this case, we begin to assume that positive sentiment actually is the main sentiment in TED talk showing in all videos, based on previous analysis.    
 
-## Value-Based    
+## 5.2 Value-Based    
 
 Thus, except for the initial assumption, we would like to check one more assumption - if the positive sentiment appears in all videos, by using the value-based method: Afinn.    
 
@@ -211,7 +211,7 @@ TED.sent.afinn %>%
 
 ```
 
-here, we calculated the average sentiment score per video. We can see that the number of videos transcript with positive and negative values is very disparate. Thus, TED talk do prefer giving positive videos.      
+Here, we calculated the average sentiment score per video. We can see that the number of videos transcript with positive and negative values is very disparate. Thus, TED talk do prefer giving positive videos.      
 
 ```{r}
 #extract the top and tail videos
@@ -223,7 +223,7 @@ video_sentiscore <- TED.sent.afinn %>%
 # video_sentiscore[order(video_sentiscore$Score,decreasing = F),][1:10,]
 ```
 
-### Sentiment v.s. Likes    
+### 5.2.1 Sentiment v.s. Likes    
 
 ```{r,results='hide'}
 TED.sent.afinn.like <- TED.sent.afinn %>% 
@@ -239,7 +239,7 @@ TED.sent.afinn.like %>% ggplot(aes(x=likes,y=Score,color = cate))+
 Since the number of likes for each video is relatively similar, and only individual videos have a large number of likes, we separate each category to observe the distribution of the number of likes and sentiment values. We can observe there are no obvious pattern as well. Only some videos in Climate change topic have negative sentiment and the less numbers of likes.      
 
 
-### Sentiment v.s. topics        
+### 5.2.2 Sentiment v.s. topics        
 
 ```{r,results='hide'}
 TED.sent.afinn.cate <- TED.sent.afinn %>% 
@@ -254,7 +254,7 @@ TED.sent.afinn.cate %>%
 
 The sentiment values for each topic are relatively similar, and they are all in the upper-middle range - more positive. Among the topics of climate change and AI, the sentiment value of each video is more evenly distributed. AI topic has two outliners with lowest values, the most negative.     
 
-### Videos' sentiment over years   
+### 5.2.3 Sentiment over years   
 
 ```{r,results='hide'}
 TED.sent.afinn.year <- TED.sent.afinn 
@@ -272,7 +272,7 @@ TED.sent.afinn.year %>% ggplot(aes(x=posted,y=Score,color=cate))+
 
 The talks on relationship topics have great fluctuations. Its mean sentiment value reached the lowest values before 2005 and around 2013. Climate change related topics have seen a decline in mean sentiment value in recent years. Yet, It is worth noting that the positive value of videos posted after 2020 is getting higher.    
 
-## Sentiment Analysis using Valence-Shifters   
+## 5.3 Using Valence-Shifters   
 
 Meantime, we would like to check if there is a huge difference after using valence-shifters.     
 

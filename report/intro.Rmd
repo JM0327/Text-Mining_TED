@@ -1,5 +1,5 @@
 
-```{r, echo = FALSE, message = FALSE, warning=FALSE}
+```{r,include=FALSE}
 source(here::here("scripts/setup.R"))
 ```
 
@@ -10,7 +10,7 @@ source(here::here("scripts/setup.R"))
 ## Main Takeaways
 ## Conclusion
 
-# I Introduction
+# 1. Introduction
 
 There are several ways to learn and share knowledge nowadays. One of the most popular forms of learning and sharing is a short video (video clips). We are all interested in this method and would like to apply both machine-learning and text-mining techniques to real-world data to analyse video classification from its transcript or subtitle. At the beginning of the project, we had many streaming websites and video podcasts on the table, such as YouTube, BBC Learning English, Apple podcasts, and TED talk. All of them are built as friendly user platforms that we are all familiar with. TED was finally selected for this project due to its provided data we could employ in our study. TED also contains a wide range of videos in terms of topics, languages, and length of videos. More importantly, each video on the TED talk website is labelled by a relevant category and provides a text transcript.
 

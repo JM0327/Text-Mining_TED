@@ -4,6 +4,11 @@ author: "Ting Yang"
 date: "09/12/2022"
 output: html_document
 ---
+
+```{r,include=FALSE}
+source(here::here("scripts/setup.R"))
+```
+
 # Embedding
 
 Except for the LSA and LDA, we also want to use embedding to analyze the TED video transcripts. Embedding refers to the representation of elements (documents or tokens) in a Vector Space Model. First we build a word embedding and then we build document embedding that inherits the word co-occurrence. properties.

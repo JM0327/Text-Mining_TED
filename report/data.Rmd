@@ -3,11 +3,17 @@ title: "Data"
 output: html_document
 ---
 
+```{r,include=FALSE}
+source(here::here("scripts/setup.R"))
+```
+
+# 2. Data Preparation    
+
 We acquire the transcript text from each TED talks' videos, we scraped the text from TED website, and our scraping was in the following order:   
 
 -   Use RSelenium package open [TED website](https://www.ted.com/).    
 -   Go to TED Talks session by clicking the navigation bar button.     
--   Select language, topics, and the sort by to specify the range of video types.   
+-   Select language, topics, and the sort by to specify the range of video types.     
 ```{r, eval = F}
 # go to TED talk
 drop_down <- remDr$findElement(using = 'xpath', '//*[@id="menu-button--0"]/div')

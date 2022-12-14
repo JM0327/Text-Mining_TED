@@ -5,6 +5,10 @@ date: "05/12/2022"
 output: html_document
 ---
 
+```{r,include=FALSE}
+source(here::here("scripts/setup.R"))
+```
+
 # LSA
 
 ## LSA on TF
