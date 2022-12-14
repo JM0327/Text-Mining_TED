@@ -23,6 +23,8 @@ purrr::walk(packages, library, character.only = TRUE)
 opts_chunk$set(
   echo = FALSE,
   fig.width = 10,
-  fig.height = 8,
-  warning = FALSE
+  fig.height = 7,
+  warning = FALSE,
+  message = FALSE,
+  echo = FALSE
 )
