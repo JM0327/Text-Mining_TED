@@ -115,39 +115,50 @@ In order to check the relation between LSA and category of text, we combine the 
 TED.lsa.source <- TED_full %>% 
   select(2) %>% cbind(as.data.frame(TED.lsa$docs))
 
-ggplot(data=TED.lsa.source,mapping = aes(
+LSA_p1 <- ggplot(data=TED.lsa.source,mapping = aes(
   x=V2,
   y=V3,
   color=cate))+
   geom_point()+
   labs(x = "dimension2",
        y = "dimension3",
-       title = "Distribution of texts in different category on LSA(TF) dimension 2 and 3")+
+       title = "Distribution of texts in different category",
+       subtitle = "LSA(TF) dimension 2 and 3")+
   scale_colour_discrete(
     name="Category",
     breaks=c("1","2","3"),
     labels=c("AI","Climate change","Relationships")
-  )
+  )+
+  theme(plot.title = element_text(size = 12))
 ```
-First plot:x-axis is dimension 2 and y-axis is dimension3.
-According to this plot, most of the texts of category "Climate change" are negatively associated with dimension3. Most of the texts of category "Relationships" are positively associated with dimension3. And most of the category "AI" are positively associated with dimension2.
 
 ```{r}
-ggplot(data=TED.lsa.source,mapping = aes(
+LSA_P2 <- ggplot(data=TED.lsa.source,mapping = aes(
   x=V3,
   y=V4,
   color=cate))+
   geom_point()+
   labs(x = "dimension3",
        y = "dimension4",
-       title = "Distribution of texts in different category on LSA(TF) dimension 3 and 4")+
+       title = "Distribution of texts in different category",
+       subtitle = "LSA(TF):dimension 3 and 4")+
   scale_colour_discrete(
     name="Category",
     breaks=c("1","2","3"),
     labels=c("AI","Climate change","Relationships")
-  )
+  )+
+  theme(plot.title = element_text(size = 12))
 ```
-Second plot:x-axis is dimension 3 and y-axis is dimension4.
+
+```{r}
+(LSA_p1+LSA_P2)+
+  plot_layout(guides = "collect") & theme(legend.position = 'bottom')
+```
+
+Left plot:x-axis is dimension 2 and y-axis is dimension3.
+According to this plot, most of the texts of category "Climate change" are negatively associated with dimension3. Most of the texts of category "Relationships" are positively associated with dimension3. And most of the category "AI" are positively associated with dimension2.
+
+Right plot:x-axis is dimension 3 and y-axis is dimension4.
 According to this plot, most texts of category "AI" are positively associated with dimension4, most of the texts of category "Climate change" are negatively associated with dimension3, and most of the texts of category "Relationships" are positively associated with dimension3.
 
 
@@ -235,39 +246,48 @@ We also check the relation between this LSA result and category of text, we comb
 TED.lsa2.source <- TED_full %>% 
   select(2) %>% cbind(as.data.frame(TED.lsa2$docs))
 
-ggplot(data=TED.lsa2.source,mapping = aes(
+LSA_p3 <- ggplot(data=TED.lsa2.source,mapping = aes(
   x=V2,
   y=V3,
   color=cate))+
   geom_point()+
   labs(x = "dimension2",
        y = "dimension3",
-       title = "Distribution of texts in different category on the LSA(TF-IDF) dimension 2 and 3")+
+       title = "Distribution of texts in different category",
+       subtitle = "LSA(TF-IDF) dimension 2 and 3")+
   scale_colour_discrete(
     name="Category",
     breaks=c("1","2","3"),
-    labels=c("AI","Climate change","Relationships")
-  )
+    labels=c("AI","Climate change","Relationships"))+
+  theme(plot.title = element_text(size = 12))
 ```
-First plot:x-axis is dimension 2 and y-axis is dimension3.
-According to this plot, most of the texts of category "Climate change" are positively associated with dimension2. Most of the texts of category "Relationships" are positively associated with dimension3. And most of the category "AI" are negatively associated with dimension2 and dimension3.
 
 ```{r}
-ggplot(data=TED.lsa2.source,mapping = aes(
+LSA_p4 <- ggplot(data=TED.lsa2.source,mapping = aes(
   x=V3,
   y=V4,
   color=cate))+
   geom_point()+
   labs(x = "dimension3",
        y = "dimension4",
-       title = "Distribution of texts in different category on the LSA(TF-IDF) dimension 3 and 4")+
+       title = "Distribution of texts in different category",
+       subtitle = "LSA(TF-IDF) dimension 3 and 4")+
   scale_colour_discrete(
     name="Category",
     breaks=c("1","2","3"),
-    labels=c("AI","Climate change","Relationships")
-  )
+    labels=c("AI","Climate change","Relationships"))+
+  theme(plot.title = element_text(size = 12))
 ```
-Second plot:x-axis is dimension 3 and y-axis is dimension4.
+
+```{r}
+(LSA_p3+LSA_p4)+
+  plot_layout(guides = "collect") & theme(legend.position = 'bottom')
+```
+
+Left plot:x-axis is dimension 2 and y-axis is dimension3.
+According to this plot, most of the texts of category "Climate change" are positively associated with dimension2. Most of the texts of category "Relationships" are positively associated with dimension3. And most of the category "AI" are negatively associated with dimension2 and dimension3.
+
+Right plot:x-axis is dimension 3 and y-axis is dimension4.
 According to this plot, most texts of category "AI" are associated with dimension4. But part of texts of category "AI" are negatively associated with dimension 4 and part of texts of category "AI" are positively associated with dimension 4. The pattern is not very clear.
 
 
