@@ -18,16 +18,18 @@ After scraping data from TED.com website, we imported two tables saved in .csv f
 TED <- read_csv(here::here("data/TED.csv")) #330 obs
 views_add <- read_csv(here::here("data/add_details_1.csv")) #310 obs
 
-kable(TED[1:10,], caption = "The original TED table") %>%
+kable(TED[1:10,], caption = "The example of original TED table") %>%
    kable_styling(bootstrap_options = "bordered") %>%
    kableExtra::scroll_box(width = "100%", height = "250px")
 
-kable(TED[1:10,], caption = "The original add_details_1 table") %>%
+kable(TED[1:10,], caption = "The example of original add_details_1 table") %>%
    kable_styling(bootstrap_options = "bordered") %>%
    kableExtra::scroll_box(width = "100%", height = "250px")
 ```
 
-We then removed duplicated observations for both tables and combined two tables by title column and named it as **TED**. TED table currently contains 324 observations with 12 variables. However, we would like to focus just 6 interesting variables, which were title of videos, when the videos were posted, topic of videos, the number of likes for videos, transcript, and the number of views of videos, for our further analyses, so we selected them and removed the rest. We also spotted 34 NAs in **TED** and they were removed later. Therefore, **TED** have 286 observations which are 103 videos from AI, 86 videos from Climate change, and 97 videos from Relationships.
+We then removed duplicated observations for both tables and combined two tables by title column and named it as **TED**. TED table currently contains 324 observations with 12 variables. However, we would like to focus just 6 interesting variables, which were title of videos (title), when the videos were posted (posted), topic of videos (cate), the number of likes for videos (likes), transcript (tanscript), and the number of views of videos (views_details), for our further analyses, so we selected them and removed the rest. The title variable would be employed for only a sentiment analysis. Hence, we stored all 6 variables in **TED_sentiment**, which performs the main table of the sentiment analysis, and removed the title variable from **TED**.
+
+We also spotted 34 missing values (NAs) in **TED** and they were removed later. Therefore, **TED** have 286 observations which are 103 videos from AI, 86 videos from Climate change, and 97 videos from Relationships.
 ```{r}
 # Delete duplicate rows of TED
 sum(duplicated(TED)) #6
@@ -100,11 +102,11 @@ TED_sentiment <- TED
 TED <- TED %>% select(-title)
 ```
 
+We also converted the topic names, AI, Climate change, and Relationships, to be numbers 1, 2, and 3 under **cate** variable in **TED**, respectively. This would be easy to keep track of the videos in supervised and unsupervised learning analyses.
+
 Due to the limited number of available videos within the selected topics on TED website, we could not scrape more videos for unsupervised and supervised learning analyses, and we would like to obtain a robust model as well as avoid the overfitting problem. Therefore, we decided to increase the number of our observations by setting up a window of 20 sentences to be equal to 1 observation as we noticed that the transcripts each video comprised of more than 20 sentences. 
 
-We also converted the topic names, AI, Climate change, and Relationships, to be numbers 1, 2, and 3. This would be easy to keep track of the videos in supervised and unsupervised learning analyses.
-
-We split sentences by using the token...sentence function from ... package. Then add sub cate. For example, sub_cat of 1.2 indicates that the observation is from the 2nd transcript in Topic 1. Afterwards we add text column to indicate and identifier of each text. For ex, a text id of 1.2.3 indicate that this text comes from the third sentence of the second transcript in topic 1(AI)
+We split sentences by using the **tokenize_sentence** function from quanteda package and created a new variable, namely **sub cate**. For example, sub_cate of 1.1 indicates that the observation is from the first transcript in AI (The first topic). We then created a **text** variable to indicate and identify each text. For example, a text of 1.1.1 indicates that this text comes from the first 20 sentences of the first transcript in AI topic. By doing this, the number of observations increases from 286 to 1,471 and we named this data frame as **TED_full**. To sum up, **TED_full** consists of 1,471 observations with 7 variables which are posted, cate, like, view, subcate, text, tanscript. 
 
 ```{r}
 # Increase the number of instances: 20 sentences = 1 instance
@@ -155,15 +157,65 @@ TED_full$tanscript <- trim_ws(TED_full$tanscript)
 
 # Our final table = TED_full consisting of 1471 instances
 
-# kable(TED[, ], caption = "The original TED table") %>%
-#   kable_styling(bootstrap_options = "bordered") %>%
-#   kableExtra::scroll_box(width = "100%", height = "250px")  
+kable(TED_full[10,], caption = "The example of  TED_full table") %>%
+  kable_styling(bootstrap_options = "bordered") %>%
+  kableExtra::scroll_box(width = "100%", height = "250px")
 
 ```
 
-# Tokenization from TED_full for unsupervised and supervised analyses
+## Tokenization
 
-I aim to create DTM, TFIDF tables by quanteda package. However, I also token TED_full by tidytext as well 
+We tokenized our transcript by quanteda package aiming to receive Document-Term Matrix and TFIDF matrix. In this section, we performed the tokenization twice. First, we tokenized **TED**, which consists of 286 videos/observations, to gain access into hidden insights each video and to observe the similarity and dissimilarity of each video. Second, we tokenized **TED_full**, which consists of 1,471 instances, for unsupervised and supervised learning analyses.
+
+### Tokenization from TED 
+
+We applied corpus() and tokens() functions to the tanscript variable to remove numbers, all characters in the "punctuation", symbols, and separators. We then removed stop words from the SMART information retrieval system in English (571 words) and also deleted 2 more words, applaud and laughter, that they appear often in our transcript as sound representation. Sound representation in a transcript is one of the translated functionality of TED meant to enable deaf and hard-of-hearing viewers to understand all the non-spoken auditory information. Afterward, we performed lemmatization and named the data frame as **TED.tk1**.
+
+To obtain the Document-Term Matrix and the TFIDF matrix, we used dfm() and dfm_tfidf() functions, respectively. The first 10 terms and 10 documents (videos) are shown below. Additionally, the frequencies per terms can simply be obtained using textstat_frequency() as presented in the last table.
+
+```{r}
+# Quanteda
+TED.cp1 <- corpus(TED$tanscript)
+summary(TED.cp1)
+
+TED.tk1 <- tokens(
+  TED.cp1, 
+  remove_numbers = TRUE, 
+  remove_punct = TRUE, 
+  remove_symbols = TRUE, 
+  remove_separators = TRUE)
+
+TED.tk1 <- TED.tk1 %>% 
+  tokens_tolower() %>% 
+  tokens_remove(c(stopwords(source = "smart"), "applaud", "laughter"))
+
+TED.tk1 <- tokens_replace(
+  TED.tk1,
+  pattern = hash_lemmas$token, 
+  replacement = hash_lemmas$lemma)
+
+TED.dfm1 <- dfm(TED.tk1)
+kable(TED.dfm1[1:10,1:10], caption = "The example of document-feature matrix") %>%
+  kable_styling(bootstrap_options = "bordered") %>%
+  kableExtra::scroll_box(width = "100%", height = "250px")
+
+TED.tfidf1 <- dfm_tfidf(TED.dfm1)  
+kable(TED.tfidf1[1:10,1:10], caption = "The example of TFIDF matrix") %>%
+  kable_styling(bootstrap_options = "bordered") %>%
+  kableExtra::scroll_box(width = "100%", height = "250px")
+
+#sort(apply(TED.tfidf1, 2, max), decreasing = TRUE)[1:10] ->EDA
+
+TED.freq1 <- textstat_frequency(TED.dfm1)
+head(TED.freq1, 10)
+
+```
+
+### Tokenization from TED_full for unsupervised and supervised learning analyses
+
+
+
+I aim to create DTM, TFIDF tables by quanteda package. 
 ```{r}
 # Quanteda
 TED.cp <- corpus(TED_full$tanscript)
@@ -210,40 +262,7 @@ sort(apply(TED.tfidf, 2, max), decreasing = TRUE)[1:10]
 
 ```
 
-# Tokenization from TED for EDA
 
-```{r}
-# Quanteda
-TED.cp1 <- corpus(TED$tanscript)
-summary(TED.cp1)
-
-TED.tk1 <- tokens(
-  TED.cp1, 
-  remove_numbers = TRUE, 
-  remove_punct = TRUE, 
-  remove_symbols = TRUE, 
-  remove_separators = TRUE)
-
-TED.tk1 <- TED.tk1 %>% 
-  tokens_tolower() %>% 
-  tokens_remove(c(stopwords(source = "smart"), "applaud", "laughter"))
-
-TED.tk1 <- tokens_replace(
-  TED.tk1,
-  pattern = hash_lemmas$token, 
-  replacement = hash_lemmas$lemma)
-
-TED.tk1
-
-
-TED.dfm1 <- dfm(TED.tk1)
-head(TED.dfm1)
-TED.freq1 <- textstat_frequency(TED.dfm1)
-head(TED.freq1, 20)
-TED.tfidf1 <- dfm_tfidf(TED.dfm1)  
-sort(apply(TED.tfidf1, 2, max), decreasing = TRUE)[1:10]
-
-```
 
 
 
