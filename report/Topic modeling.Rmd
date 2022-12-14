@@ -17,21 +17,35 @@ First, we build the LSA object and use 4 dimensions. Latent Semantic Analysis(LS
 TED.lsa <- textmodel_lsa(x = TED.dfm,nd = 4)
 ```
 
-```{r Doc-topic sim}
-head(TED.lsa$docs)
+```{r Doc-topic sim.}
+kable(TED.lsa$docs, 
+      col.names = c("dimension1","dimension2","dimension3","dimension4"),
+      caption = "Doc-topic sim.(LSA on TF)") %>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "250px")
 ```
-This Doc-topic sim table shows the link between each text and each topic. For example, text1 most relevant to dimension 2(topic 2).
+This Doc-topic sim. table shows the link between each text and each topic. For example, text1 most relevant to dimension 2(topic 2).
 
 ```{r}
-head(TED.lsa$sk)
+CN <- c("dimension1","dimension2","dimension3","dimension4")
+Topic_Strength <- data.frame(CN,TED.lsa$sk)
+kable(Topic_Strength,
+      col.names= c("Dimension","Topic strength"),
+      caption = "Topic strength(LSA on TF)")%>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "200px")
 ```
-These values represent the strength of each topic. Except for the topic 1, topic 2 has the largest strength.
+This Topic strength table represent the strength of each topic. Except for the topic 1, topic 2 has the largest strength.
 
 
 ```{r}
-head(TED.lsa$features)
+kable(head(TED.lsa$features,10), 
+      col.names = c("dimension1","dimension2","dimension3","dimension4"),
+      caption = "Terms-topic sim.(LSA on TF)") %>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "250px")
 ```
-This Terms-topic sim table shows the link between each term and each topic. For example, the term "artificial" most relevant to dimension 2(topic 2).
+This Terms-topic sim. table shows the link between each term and each topic. For example, the term "artificial" most relevant to dimension 2(topic 2).
 
 
 The first dimension of LSA is often correlated to (of little information and often not represented) the document length and the frequency of the term. We build a scatter-plot between the document length and Dimension 1 to demonstrate it.
@@ -41,12 +55,16 @@ data.frame(doc.freq,
            dim1 = TED.lsa$docs[, 1]) %>% 
   ggplot(aes(doc.freq, dim1)) + 
   geom_point() + 
-  geom_smooth(method="lm") +
-  xlab("Number of tokens") + 
-  ylab("LSA dim. 1")
+  geom_smooth(method="lm",
+              formula = 'y ~ x') +
+  labs(
+    title="Correlation between number of tokens and LSA dimension 1 values",
+    x="Number of tokens",
+    y="LSA dim. 1"
+  )
 ```
 
-Then we check the top words for dimension2, 3, and 4.
+Then we check the top words for dimension2, 3, and 4. For each dimension, we look at the five terms with the largest values and the five ones with the lowest value (i.e., largest negative value).
 ```{r}
 n.terms <- 5
 ## For Dimension 2
@@ -62,19 +80,31 @@ w.top.d4 <- c(w.order[1:n.terms], rev(rev(w.order)[1:n.terms]))
 
 
 ```{r}
-w.top.d2
+kable(w.top.d2,
+      col.names = "value",
+      caption = "Dimension 2(LSA on TF)")%>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "200px")
 ```
 Dimension 2 is associated positively with word like "ai", "human", "robot", "machine" ,"datum", and negatively associated with "feel", "climate", "life", "love", "people".
 
 
 ```{r}
-w.top.d3
+kable(w.top.d3,
+      col.names = "value",
+      caption = "Dimension 3(LSA on TF)")%>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "200px")
 ```
 Dimension 3 is associated positively with word like "people", "love", "robot", "fell" ,"life", and negatively associated with "forest", "year", "energy", "carbon", "climate".
 
 
 ```{r}
-w.top.d4
+kable(w.top.d4,
+      col.names = "value",
+      caption = "Dimension 4(LSA on TF)")%>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "200px")
 ```
 Dimension 4 is associated positively with word like "robot", "thing", "rule", "move" ,"start", and negatively associated with "datum", "human", "love", "people", "ai".
 
@@ -92,7 +122,7 @@ ggplot(data=TED.lsa.source,mapping = aes(
   geom_point()+
   labs(x = "dimension2",
        y = "dimension3",
-       title = "Distribution of texts in different category on the LSA(TF) dimension 2 and 3")+
+       title = "Distribution of texts in different category on LSA(TF) dimension 2 and 3")+
   scale_colour_discrete(
     name="Category",
     breaks=c("1","2","3"),
@@ -110,7 +140,7 @@ ggplot(data=TED.lsa.source,mapping = aes(
   geom_point()+
   labs(x = "dimension3",
        y = "dimension4",
-       title = "Distribution of texts in different category on the LSA(TF) dimension 3 and 4")+
+       title = "Distribution of texts in different category on LSA(TF) dimension 3 and 4")+
   scale_colour_discrete(
     name="Category",
     breaks=c("1","2","3"),
@@ -129,17 +159,34 @@ TED.lsa2 <- textmodel_lsa(TED.tfidf, nd = 4)
 
 
 ```{r}
-head(TED.lsa2$docs)
+kable(TED.lsa2$docs, 
+      col.names = c("dimension1","dimension2","dimension3","dimension4"),
+      caption = "Doc-topic sim.(LSA on TF-IDF)") %>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "250px")
 ```
+This Doc-topic sim. table shows the link between each text and each topic. For example, text3 most relevant to dimension 3(topic 3).
+
+```{r}
+Topic_Strength2 <- data.frame(CN,TED.lsa2$sk)
+kable(Topic_Strength2,
+      col.names= c("Dimension","Topic strength"),
+      caption = "Topic strength(LSA on TF-IDF)")%>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "200px")
+```
+This Topic strength table represent the strength of each dimension(topic). For example, dimension 4 has the smallest strength.
 
 
 ```{r}
-head(TED.lsa2$sk)
+kable(head(TED.lsa2$features,10), 
+      col.names = c("dimension1","dimension2","dimension3","dimension4"),
+      caption = "Terms-topic sim.(LSA on TF-IDF)") %>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "250px")
 ```
+This Terms-topic sim. table shows the link between each term and each topic. For example, the terms "artificial" and "intelligence" are both most relevant to dimension 3(topic 3).
 
-```{r}
-head(TED.lsa2$features)
-```
 
 We also check the top words for dimension2, 3, and 4 of LSA on TF-IDF.
 ```{r}
@@ -156,17 +203,29 @@ w2.top.d4 <- c(w2.order[1:n.terms], rev(rev(w2.order)[1:n.terms]))
 
 
 ```{r}
-w2.top.d2
+kable(w2.top.d2,
+      col.names = "value",
+      caption = "Dimension 2(LSA on TF-IDF)")%>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "200px")
 ```
 For this LSA, dimension 2 is associated positively with word like "forest", "carbon", "climate", "emission" ,"energy", and negatively associated with "human", "computer", "machine", "ai", "robot".
 
 ```{r}
-w2.top.d3
+kable(w2.top.d3,
+      col.names = "value",
+      caption = "Dimension 3(LSA on TF-IDF)")%>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "200px")
 ```
 Dimension 3 is associated positively with word like "regret", "sex", "woman", "love" ,"man", and negatively associated with "datum", "machine", "rule", "ai", "robot".
 
 ```{r}
-w2.top.d4
+kable(w2.top.d4,
+      col.names = "value",
+      caption = "Dimension 4(LSA on TF-IDF)")%>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "200px")
 ```
 Dimension 4 is associated positively with word like "robot", "rule", "bee", "seaweed" ,"coral", and negatively associated with "machine", "human", "company", "datum", "ai".
 
@@ -221,14 +280,23 @@ TED.LDA <- LDA(
   control = list(seed = 123))
 ```
 
+
 First, I check the top5 words in each dimension. For example, the top5 terms for topic 1 are "climate", "year", "make", "change" and "energy".
 ```{r}
-topicmodels::terms(TED.LDA, 5)
+kable(topicmodels::terms(TED.LDA, 5),
+      caption = "Top5 terms for each topic")%>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "200px")
 ```
 
 Then I create a table to show the number of documents in each dimension. For example, topic 3 has the highest number of documents(439). 
 ```{r}
-topicmodels::topics(TED.LDA)%>% table()
+topicmodels::topics(TED.LDA)%>% 
+  table() %>% 
+  kable(caption = "Top5 terms for each topic",
+        col.names = c("Topic", "number of documents")) %>%
+  kable_styling(bootstrap_options = "bordered") %>%
+  kableExtra::scroll_box(width = "100%", height = "200px")
 ```
 
 Then I use the topic_diagnostics function to diagnose the *prominence*, *coherence* and *exclusivity* of each dimension.
