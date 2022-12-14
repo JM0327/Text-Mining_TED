@@ -75,7 +75,7 @@ toplike20%>%
   coord_flip()+
   theme(legend.position = 'bottom')+
   labs(y="the number of sentiment")+
-  ggtitle("The sentiment of 20 videos with most liks")
+  ggtitle("The sentiment of 20 videos with most likes")
 
 # tail
 taillike20%>%
@@ -86,7 +86,7 @@ taillike20%>%
   coord_flip()+
   theme(legend.position = 'bottom')+
   labs(y="the number of sentiment")+
-  ggtitle("The sentiment of 20 videos with least liks")
+  ggtitle("The sentiment of 20 videos with least likes")
   
 ```
 
@@ -120,7 +120,7 @@ left_join(
   coord_flip()+
   theme(legend.position = 'bottom')+
   labs(y="the number of sentiment")+
-  ggtitle("The sentiment of 20 videos with most liks")
+  ggtitle("The sentiment of 20 videos with most likes")
 
 #tail
 left_join(
@@ -141,7 +141,7 @@ left_join(
   coord_flip()+
   theme(legend.position = 'bottom')+
   labs(y="the number of sentiment")+
-  ggtitle("The sentiment of 20 videos with least liks")
+  ggtitle("The sentiment of 20 videos with least likes")
 ```
 
 In this part, we did NRC method in two different ways, one without scaling and another with re-scaling the sentiment by their length in the documents.    
@@ -321,7 +321,7 @@ nagative <- length(negative$title)
 # [1] 31
 ```
 
-First, we can see that the sentiment values are distributed as similar as the one without using Valence-Shifters. After counting the number of videos transcripts with negative values, we found there are 31 videos having negative values before taking negative form into account, and 19 videos having negative values after considering negative form.    
+First, we can see that the sentiment values are distributed as similar as the one without using Valence-Shifters. After counting the number of videos transcripts with negative values, we found there are `31` videos having negative values before taking negative form into account, and `19` videos having negative values after considering negative form.    
 
 
 
