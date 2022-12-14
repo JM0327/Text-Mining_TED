@@ -4,9 +4,12 @@ author: "Ting Yang"
 date: "09/12/2022"
 output: html_document
 ---
+# Embedding
 
-# Word Embedding
+Except for the LSA and LDA, we also want to use embedding to analyze the TED video transcripts. Embedding refers to the representation of elements (documents or tokens) in a Vector Space Model. First we build a word embedding and then we build document embedding that inherits the word co-occurrence. properties.
 
+## Word Embedding
+The objective is to find a word embedding that reflects the co-occurrences. We use the fcm function from quanteta to compute word co-occurrence. 
 ```{r}
 TED.coo <- fcm(TED.tk,
                context = "window",
@@ -14,7 +17,7 @@ TED.coo <- fcm(TED.tk,
                tri = FALSE) 
 head(TED.coo)
 ```
-For example, the co-occurrence of word *artificial* and *intelligence* is large(170). But the co-occurrence of word *fly* and *intelligence* is very small(0). 
+Here we show the first several rows of the result. For example, the co-occurrence of word *artificial* and *intelligence* is large(170). But the co-occurrence of word *fly* and *intelligence* is very small(0). 
 
 ```{r}
 set.seed(123)
@@ -24,13 +27,14 @@ TED.glove <- GlobalVectors$new(rank = p,
 TED.we <- TED.glove$fit_transform(TED.coo) # central vectors; speech.glove$components contains the context vectors
 TED.we <- t(TED.glove$components) + TED.we# unique representation
 ```
-
+For the visualization, we draw two plots. The first one is plotting the vectors of the 100 most used words (100 largest frequencies).
+Here we show the top6 as an example. The second one is plotting all the words but only labeling part of it.
 ```{r}
 index <- textstat_frequency(dfm(TED.tk))[1:100, ]$feature
-index ## words with the 150 largest frequencies
+head(index) ## words with the 100 largest frequencies
 ```
 
-```{r}
+```{r top100 most used words map}
 data.for.plot <- data.frame(TED.we[index, ])
 data.for.plot$word <- row.names(data.for.plot)
 ggplot(data.for.plot, 
@@ -40,7 +44,8 @@ ggplot(data.for.plot,
   geom_text_repel(max.overlaps = 100) + 
   theme_void() 
 ```
-Words that are close on the map are often used together (e.g. "ai" and "technology", “relationship” and "friend").
+Words that are close on the map are often used together. For example, the word "machine" and "intelligence" are close which means they are usually used together. And the word "man" and "woman" are close so they are also usually used together.
+
 
 ```{r}
 TED.we.df <- as.data.frame(TED.we)
@@ -50,8 +55,8 @@ e <- c(1:15045)
 row.names(TED.we.df) <- e
 ```
 
-another kind of plot
-```{r}
+
+```{r all words map}
 ggplot(TED.we.df,aes(x=V1,y=V2))+
   geom_text_repel(data = subset(TED.we.df, V1 <=-1.8|V2>3|V1>2),
             mapping = aes(label = word),
@@ -59,10 +64,11 @@ ggplot(TED.we.df,aes(x=V1,y=V2))+
             max.overlaps = 100) +
   geom_point(color="grey")
 ```
-
+The plot shows all the used words in grey and labels a part of words for illustration. According to the plot, the word "warm" and "temperature" are close so these two words are usually used together. Also, the word "cat" and "bird" are close on the map which means they are usually used together.
 
 # Document Embedding
 
+We now build the document embedding by computing the centroids of the documents.
 ```{r}
 head(TED.tk[[1]])
 head(TED.we[TED.tk[[1]], ])
@@ -80,7 +86,7 @@ for(i in 1:nd) {
 row.names(TED.de) <- names(TED.tk)
 head(TED.de) ## document vectors
 ```
-
+Now, we make the representation of the documents and use different color to represent the document in diffrent category.
 ```{r}
 TED.de <- as.data.frame(TED.de)
 TED.de.source <- TED_full %>% 
@@ -99,6 +105,6 @@ ggplot(data=TED.de.source,mapping = aes(
     labels=c("AI","Climate change","Relationships")
   )
 ```
-
+According to this plot, the documents in the category "climate change" and "relationships" covers the largest area of each other. So maybe the documents in these two categories are more similar when compared with the documents in the category "AI".
 
 
