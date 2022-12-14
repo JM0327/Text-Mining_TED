@@ -152,7 +152,7 @@ No matter in which way we can see that there are no obvious difference among the
 
 we would like to check what is the more frequent sentiment appearing in each topics. we suppose the topic like climate change is more related to negative or fear sentiment, and for the topic like AI, we could see anticipation or positive sentiment more frequent.   
 
-```{r,results='hide'}
+```{r,results='hide',fig.height=5}
 # it is hard to check the sentiment for each video, then check it for each cate
 
 TED.nrc %>% 
