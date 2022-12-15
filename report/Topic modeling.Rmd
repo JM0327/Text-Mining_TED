@@ -321,9 +321,14 @@ topicmodels::topics(TED.LDA)%>%
 
 Then I use the topic_diagnostics function to diagnose the *prominence*, *coherence* and *exclusivity* of each dimension.
 ```{r}
-topic_diagnostics(
+td <- topic_diagnostics(
   topic_model = TED.LDA, 
   dtm_data = convert(TED.dfm, to = "topicmodels"))
+
+kable(td,
+      caption = "Topic diagnostics")%>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "200px")
 ```
 Topic 3 has the largest prominence.
 Topic 4 has the largest topic coherence and Topic 1 has the smallest topic coherence.
