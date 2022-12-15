@@ -20,7 +20,15 @@ TED.coo <- fcm(TED.tk,
                context = "window",
                window = 5,
                tri = FALSE) 
-head(TED.coo)
+
+TC <- head(TED.coo) %>% 
+  convert(to="data.frame") %>% 
+  select(1:6)
+
+kable(TC,
+      caption = "co-occurrence matrix") %>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "250px")
 ```
 Here we show the first several rows of the result. For example, the co-occurrence of word *artificial* and *intelligence* is large(170). But the co-occurrence of word *fly* and *intelligence* is very small(0). 
 
@@ -78,11 +86,12 @@ Emb_p1
 Emb_p2
 ```
 
-First plot: We use the geom_text_repel() function to avoid overlapping labels between data points. Some labels show a black line next to them, pointing to the location of the point marked by that label. 
-Words that are close on the map are often used together. For example, the word "machine" and "intelligence" are close which means they are usually used together. And the word "man" and "woman" are close so they are also usually used together.
+We use the geom_text_repel() function to avoid overlapping labels between data points. Some labels show a black line next to them, pointing to the location of the point marked by that label. 
+
+First plot: Words that are close on the map are often used together. For example, the word "robot" and "computer" are close which means they are usually used together. And the word "man" and "woman" are close so they are also usually used together.
 
 Second plot: We also want to check the distribution of all words so we draw this second plot.
-This plot shows all the used words in grey and labels a part of words for illustration. According to the plot, the word "warm" and "temperature" are close so these two words are usually used together. 
+This plot shows all the used words in grey and labels a part of words for illustration. According to the plot, the word "carbon" and "emission" are close so these two words are usually used together. 
 
 # Document Embedding
 
@@ -136,6 +145,6 @@ ggplot(data=TED.de.source,mapping = aes(
     labels=c("AI","Climate change","Relationships")
   )
 ```
-According to this plot, the documents in the category "climate change" and "relationships" covers the largest area of each other. So maybe the documents in these two categories are more similar when compared with the documents in the category "AI".
+According to this plot, the documents in the category "AI" and "relationships" covers the largest area of each other. So maybe the documents in these two categories are more similar when compared with the documents in the category "Climate change".
 
 
