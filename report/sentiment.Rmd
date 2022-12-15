@@ -200,10 +200,10 @@ TED.sent.afinn <-
 
 ```{r, fig.height=13}
 TED.sent.afinn %>% 
-  group_by(title) %>% 
+  group_by(title,cate) %>% 
   summarize(Score = mean(value)) %>% 
   ungroup() %>% 
-  ggplot(aes(x = reorder(title, Score), y = Score)) + 
+  ggplot(aes(x = reorder_within(title, Score,cate), y = Score, fill = cate)) + 
   geom_bar(stat = "identity") + 
   coord_flip() +
   ylab("Mean Sentiment Score") +
@@ -211,7 +211,7 @@ TED.sent.afinn %>%
 
 ```
 
-Here, we calculated the average sentiment score per video. We can see that the number of videos transcript with positive and negative values is very disparate. Thus, TED talk do prefer giving positive videos.      
+Here, we calculated the average sentiment score per video. We can see that the number of videos transcript with positive and negative values is very disparate. Thus, TED talk do prefer giving positive videos. And, from the topics perspective, we can see that in every level of sentiment values, there are three kinds of videos.   
 
 ```{r}
 #extract the top and tail videos
@@ -225,23 +225,23 @@ video_sentiscore <- TED.sent.afinn %>%
 
 ### 5.2.1 Sentiment v.s. Likes    
 
-```{r,results='hide'}
+```{r,results='hide',fig.height=5}
 TED.sent.afinn.like <- TED.sent.afinn %>% 
   group_by(title,cate,likes) %>% 
   summarize(Score = mean(value))
 
 TED.sent.afinn.like %>% ggplot(aes(x=likes,y=Score,color = cate))+
-  geom_line() +
-  facet_wrap(~cate, nrow = 3,scales = 'free')+
+  geom_point(size=1) +
+  geom_smooth(method = "lm")+
+  facet_wrap(~cate,scales = 'free')+
   theme(legend.position = 'bottom')
 ```
 
-Since the number of likes for each video is relatively similar, and only individual videos have a large number of likes, we separate each category to observe the distribution of the number of likes and sentiment values. We can observe there are no obvious pattern as well. Only some videos in Climate change topic have negative sentiment and the less numbers of likes.      
-
+Since the number of likes for each video is relatively similar, and only some videos have a large number of likes, we separate each category to observe the distribution of the number of likes and sentiment values. We can observe there are no obvious pattern as well. Compared to AI and Relationship, the sentiment of Climate change talks are widely distributed. No matter in terms of which level of likes, there are videos with various sentiment value.    
 
 ### 5.2.2 Sentiment v.s. topics        
 
-```{r,results='hide'}
+```{r,results='hide',fig.height=5}
 TED.sent.afinn.cate <- TED.sent.afinn %>% 
   group_by(title,cate) %>% 
   summarize(Score = mean(value))
@@ -252,25 +252,28 @@ TED.sent.afinn.cate %>%
   labs(x="Topics")
 ```
 
-The sentiment values for each topic are relatively similar, and they are all in the upper-middle range - more positive. Among the topics of climate change and AI, the sentiment value of each video is more evenly distributed. AI topic has two outliners with lowest values, the most negative.     
+The sentiment values for each topic are relatively similar, and they are all in the upper-middle range - more positive. Among the topics of climate change and AI, the sentiment values of each video are more evenly distributed. AI topic has two outliners with lowest values, the most negative.     
 
 ### 5.2.3 Sentiment over years   
 
-```{r,results='hide'}
+```{r,results='hide',fig.height=5}
 TED.sent.afinn.year <- TED.sent.afinn 
-TED.sent.afinn.year$posted <- year(TED.sent.afinn.year$posted)
+#TED.sent.afinn.year$posted <- format(as.Date(TED.sent.afinn.year$posted), "%Y-%m")
 
 TED.sent.afinn.year <- TED.sent.afinn.year %>% 
-  group_by(cate,posted) %>% 
+  group_by(title,cate,posted) %>% 
   summarize(Score = mean(value))
 
-TED.sent.afinn.year %>% ggplot(aes(x=posted,y=Score,color=cate))+
-  geom_line()+
+TED.sent.afinn.year %>% ggplot(aes(x=posted,y=Score))+
+  geom_point()+
+  geom_smooth(method = "lm")+
   theme(legend.position = 'bottom')+
-  labs(x="Posted Year")
+  labs(x="Posted Year")+
+  facet_wrap(~cate)+
+  scale_x_date(date_minor_breaks = "2 day")
 ```
 
-The talks on relationship topics have great fluctuations. Its mean sentiment value reached the lowest values before 2005 and around 2013. Climate change related topics have seen a decline in mean sentiment value in recent years. Yet, It is worth noting that the positive value of videos posted after 2020 is getting higher.    
+The talks have huge fluctuations over years. Overall, the trend of sentiment value is slightly decreasing, but there are no clear correlation between sentiment value and year. 
 
 ## 5.3 Using Valence-Shifters   
 
