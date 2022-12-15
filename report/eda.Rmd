@@ -19,6 +19,10 @@ source(here::here("scripts/setup.R"))
 # Plot of Frequencies and TF-IDF
 -because we have 3 different topics so we dont expect topic specific words in the most frequent used terms. Altho we can see some words related to our topic like love, ai, kind, world, human
 ```{r}
+
+#sort(apply(TED.tfidf1, 2, max), decreasing = TRUE)[1:10] ->EDA
+
+
 TED.freq1 %>% 
   top_n(20, frequency) %>%
   ggplot(aes(

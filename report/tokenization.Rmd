@@ -13,7 +13,7 @@ source(here::here("scripts/setup.R"))
 ## Wrangling and parsing data
 
 After scraping data from TED.com website, we imported two tables saved in .csv format in the data folder, namely TED.csv and add_details_1.csv. The original tables consist of 330 observations with 11 variables and 310 observations with 2 variables, respectively. 
-```{r, include=FALSE}
+```{r, echo=TRUE, warning=FALSE}
 # Import data
 TED <- read_csv(here::here("data/TED.csv")) #330 obs
 views_add <- read_csv(here::here("data/add_details_1.csv")) #310 obs
@@ -30,13 +30,13 @@ kable(TED[1:10,], caption = "The example of original add_details_1 table") %>%
 We then removed duplicated observations for both tables and combined two tables by title column and named it as **TED**. TED table currently contains 324 observations with 12 variables. However, we would like to focus just 6 interesting variables, which were title of videos (title), when the videos were posted (posted), topic of videos (cate), the number of likes for videos (likes), transcript (tanscript), and the number of views of videos (views_details), for our further analyses, so we selected them and removed the rest. The title variable would be employed for only a sentiment analysis. Hence, we stored all 6 variables in **TED_sentiment**, which performs the main table of the sentiment analysis, and removed the title variable from **TED**.
 
 We also spotted 34 missing values (NAs) in **TED** and they were removed later. Therefore, **TED** have 286 observations which are 103 videos from AI, 86 videos from Climate change, and 97 videos from Relationships.
-```{r}
+```{r, echo=TRUE, warning=FALSE}
 # Delete duplicate rows of TED
 sum(duplicated(TED)) #6
 TED <- TED[!duplicated(TED), ]
 
 # Delete duplicate rows of views_add
-unique(views_add$page_title) #304 so duplicate title = 6
+#unique(views_add$page_title) #304 so duplicate title = 6
 views_add <- views_add[!duplicated(views_add), ] 
 
 # Combine tables
@@ -55,7 +55,7 @@ TED <- na.omit(TED) #286
 catenum <- data.frame(table(TED$cate))
 colnames(catenum) <- c("Topics", "Count")
 
-kable(catenum[,], caption = "") %>%
+kable(catenum[,], caption = "The number of videos per topics") %>%
    kable_styling(bootstrap_options = "bordered") %>%
    kableExtra::scroll_box(width = "100%", height = "250px")
 ```
@@ -64,7 +64,7 @@ Subsequently, it turned to data parsing step. We converted posting time, the num
 
 For the transcript, there were the number of translated languages and the details of the translation at the beginning of the transcript every video. In this project, we focus only the actual transcript. Thus, we removed this part out of the transcript. For example, the first sentence of the transcript in the first video,*"How does artificial intelligence learn?"*, was "Transcript (28 Languages)Bahasa IndonesiaDeutschEnglishEspañolFrançaisItalianoMagyarPolskiPortuguês brasileiroPortuguês de PortugalRomânăTiếng ViệtTürkçeΕλληνικάРусскийСрпски, Srpskiעבריתالعربيةفارسىکوردی سۆرانیবাংলাதமிழ்ภาษาไทยမြန်မာဘာသာ中文 (简体)中文 (繁體)日本語한국어". We removed this part out of the transcript.
 
-```{r}
+```{r, echo=TRUE, warning=FALSE}
 # Parse data
 TED$posted <- my(TED$posted)
 TED$cate[which(TED$cate=="AI")] <- "1"
@@ -108,7 +108,7 @@ Due to the limited number of available videos within the selected topics on TED 
 
 We split sentences by using the **tokenize_sentence** function from quanteda package and created a new variable, namely **sub cate**. For example, sub_cate of 1.1 indicates that the observation is from the first transcript in AI (The first topic). We then created a **text** variable to indicate and identify each text. For example, a text of 1.1.1 indicates that this text comes from the first 20 sentences of the first transcript in AI topic. By doing this, the number of observations increases from 286 to 1,471 and we named this data frame as **TED_full**. To sum up, **TED_full** consists of 1,471 observations with 7 variables which are posted, cate, like, view, subcate, text, tanscript. 
 
-```{r}
+```{r, echo=TRUE, warning=FALSE}
 # Increase the number of instances: 20 sentences = 1 instance
 TED_full <- TED[0,]
 TED_full$subcate <- TED_full$cate #new col but same type
@@ -171,12 +171,12 @@ We tokenized our transcript by quanteda package aiming to receive Document-Term 
 
 We applied corpus() and tokens() functions to the tanscript variable to remove numbers, all characters in the "punctuation", symbols, and separators. We then removed stop words from the SMART information retrieval system in English (571 words) and also deleted 2 more words, applaud and laughter, that they appear often in our transcript as sound representation. Sound representation in a transcript is one of the translated functionality of TED meant to enable deaf and hard-of-hearing viewers to understand all the non-spoken auditory information. Afterward, we performed lemmatization and named the data frame as **TED.tk1**.
 
-To obtain the Document-Term Matrix and the TFIDF matrix, we used dfm() and dfm_tfidf() functions, respectively. The first 10 terms and 10 documents (videos) are shown below. Additionally, the frequencies per terms can simply be obtained using textstat_frequency() as presented in the last table.
+To obtain the Document-Term Matrix and the TFIDF matrix, we used dfm() and dfm_tfidf() functions, respectively. The first 10 terms and 10 documents (videos) are shown below.
 
-```{r}
+```{r, echo=TRUE, warning=FALSE}
 # Quanteda
 TED.cp1 <- corpus(TED$tanscript)
-summary(TED.cp1)
+#summary(TED.cp1)
 
 TED.tk1 <- tokens(
   TED.cp1, 
@@ -195,7 +195,7 @@ TED.tk1 <- tokens_replace(
   replacement = hash_lemmas$lemma)
 
 TED.dfm1 <- dfm(TED.tk1)
-kable(TED.dfm1[1:10,1:10], caption = "The example of document-feature matrix") %>%
+kable(TED.dfm1[1:10,1:10], caption = "The example of Document-Term Matrix") %>%
   kable_styling(bootstrap_options = "bordered") %>%
   kableExtra::scroll_box(width = "100%", height = "250px")
 
@@ -204,19 +204,42 @@ kable(TED.tfidf1[1:10,1:10], caption = "The example of TFIDF matrix") %>%
   kable_styling(bootstrap_options = "bordered") %>%
   kableExtra::scroll_box(width = "100%", height = "250px")
 
-#sort(apply(TED.tfidf1, 2, max), decreasing = TRUE)[1:10] ->EDA
+```
 
+Additionally, the top 10 most frequent terms can simply be obtained using textstat_frequency() as presented in the last table. We notice that 
+
+```{r, echo=TRUE, warning=FALSE}
 TED.freq1 <- textstat_frequency(TED.dfm1)
 head(TED.freq1, 10)
 
+ggplot(TED.freq1,
+       aes(x = rank, y = frequency, label = feature)) + 
+  geom_point() + 
+  geom_text_repel() +
+  ggtitle("The relationships of frequency and rank")
+
 ```
+
+We can observe some deviation from Zipf's law on the right hand side of the chart (low frequency words). The reason of the deviation might be that the text we are analyzing is not a representative sample of the language. For example, the text might contain a lot of technical terms.
+
+```{r, echo=TRUE, warning=FALSE}
+ggplot(TED.freq1,
+       aes(x = rank, y = frequency, label = feature)) + 
+  geom_point() + 
+  geom_text_repel() +
+  scale_x_log10() +
+  scale_y_log10() +
+  ggtitle("The relationships of frequency and rank on log10-log10 scale") 
+
+```
+
 
 ### Tokenization from TED_full for unsupervised and supervised learning analyses
 
 
 
 I aim to create DTM, TFIDF tables by quanteda package. 
-```{r}
+```{r, echo=TRUE, warning=FALSE}
 # Quanteda
 TED.cp <- corpus(TED_full$tanscript)
 summary(TED.cp)
@@ -243,19 +266,19 @@ TED.tk
 
 ## DTM
 
-```{r}
+```{r, echo=TRUE, warning=FALSE}
 TED.dfm <- dfm(TED.tk)
 head(TED.dfm)
 ```
 
-```{r}
+```{r, echo=TRUE, warning=FALSE}
 TED.freq <- textstat_frequency(TED.dfm)
 head(TED.freq, 20)
 ```
 
 ## TF-IDF
 
-```{r}
+```{r, echo=TRUE, warning=FALSE}
 # Quenteda
 TED.tfidf <- dfm_tfidf(TED.dfm)  
 sort(apply(TED.tfidf, 2, max), decreasing = TRUE)[1:10]
