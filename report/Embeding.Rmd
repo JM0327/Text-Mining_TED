@@ -32,25 +32,25 @@ TED.glove <- GlobalVectors$new(rank = p,
 TED.we <- TED.glove$fit_transform(TED.coo) # central vectors; speech.glove$components contains the context vectors
 TED.we <- t(TED.glove$components) + TED.we# unique representation
 ```
-For the visualization, we draw two plots. The first one is plotting the vectors of the 100 most used words (100 largest frequencies).
-Here we show the top6 as an example. The second one is plotting all the words but only labeling part of it.
+For the visualization, we draw two plots. The first one is plotting the vectors of the 100 most used words (100 largest frequencies). The second one is plotting all the words but only labeling part of it.
+
 ```{r}
 index <- textstat_frequency(dfm(TED.tk))[1:100, ]$feature
-head(index) ## words with the 100 largest frequencies
+## words with the 100 largest frequencies
 ```
 
 ```{r top100 most used words map}
 data.for.plot <- data.frame(TED.we[index, ])
 data.for.plot$word <- row.names(data.for.plot)
-ggplot(data.for.plot, 
+
+Emb_p1 <- ggplot(data.for.plot, 
        aes(x = X1,
            y = X2,
            label = word)) +
-  geom_text_repel(max.overlaps = 100) + 
-  theme_void() 
+  geom_text_repel(max.overlaps = 100)+
+  theme_void() +
+  labs(title="map of top100 words")
 ```
-Words that are close on the map are often used together. For example, the word "machine" and "intelligence" are close which means they are usually used together. And the word "man" and "woman" are close so they are also usually used together.
-
 
 ```{r}
 TED.we.df <- as.data.frame(TED.we)
@@ -60,25 +60,42 @@ e <- c(1:15045)
 row.names(TED.we.df) <- e
 ```
 
-
 ```{r all words map}
-ggplot(TED.we.df,aes(x=V1,y=V2))+
+Emb_p2 <- ggplot(TED.we.df,aes(x=V1,y=V2))+
   geom_text_repel(data = subset(TED.we.df, V1 <=-1.8|V2>3|V1>2),
             mapping = aes(label = word),
             hjust = "inward",
             max.overlaps = 100) +
-  geom_point(color="grey")
+  geom_point(color="grey")+
+  labs(title="map of all words(partially labeled)")
 ```
-The plot shows all the used words in grey and labels a part of words for illustration. According to the plot, the word "warm" and "temperature" are close so these two words are usually used together. Also, the word "cat" and "bird" are close on the map which means they are usually used together.
+
+```{r}
+Emb_p1
+```
+
+```{r}
+Emb_p2
+```
+
+First plot: We use the geom_text_repel() function to avoid overlapping labels between data points. Some labels show a black line next to them, pointing to the location of the point marked by that label. 
+Words that are close on the map are often used together. For example, the word "machine" and "intelligence" are close which means they are usually used together. And the word "man" and "woman" are close so they are also usually used together.
+
+Second plot: We also want to check the distribution of all words so we draw this second plot.
+This plot shows all the used words in grey and labels a part of words for illustration. According to the plot, the word "warm" and "temperature" are close so these two words are usually used together. 
 
 # Document Embedding
 
 We now build the document embedding by computing the centroids of the documents.
+
 ```{r}
-head(TED.tk[[1]])
-head(TED.we[TED.tk[[1]], ])
-apply(TED.we[TED.tk[[1]],], 2, mean) ## average all these vectors => Document 1 vector
+kable(TED.we[TED.tk[[1]], ],
+      col.names = c("dimension1","dimension2"),
+      caption = "word vectors") %>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "250px")
 ```
+
 
 ```{r}
 nd <- length(TED.tk) # number of documents
@@ -89,8 +106,17 @@ for(i in 1:nd) {
   TED.de[i, ] <- apply(words_in_i, 2 ,mean)
 }
 row.names(TED.de) <- names(TED.tk)
-head(TED.de) ## document vectors
 ```
+
+
+```{r}
+kable(TED.de,
+      col.names = c("dimension1","dimension2"),
+      caption = "document vectors") %>%
+   kable_styling(bootstrap_options = "bordered") %>%
+   kableExtra::scroll_box(width = "100%", height = "250px")
+```
+
 Now, we make the representation of the documents and use different color to represent the document in diffrent category.
 ```{r}
 TED.de <- as.data.frame(TED.de)
