@@ -10,14 +10,11 @@ source(here::here("scripts/setup.R"))
 ```
 
 # 4. Exploratory Data Analysis   
-In this section, we perform initial investigations on **TED** (transcript each video) to discover pattern and to sport anomalies with the summary statistics and graphical representations. We would like to present the analysis of the word frequency, the comparison of videos in term of lexical diversity, the comparison of videos in term of key words, and the connections between terms by computing co-occurance.
+In this section, we perform initial investigations on **TED** (transcript each video) to discover pattern and to sport anomalies with the summary statistics and graphical representations. We would like to present the analysis of the word frequency, the comparison of videos in term of lexical diversity, the comparison of videos in term of key words, and the connections between terms by computing co-occurrence.
 
-## 4.1 Plot of Frequencies and TF-IDF
--because we have 3 different topics so we dont expect topic specific words in the most frequent used terms. Altho we can see some words related to our topic like love, ai, kind, world, human
-```{r}
+## 4.1 Analysis of the word frequency (plot of frequencies and TF-IDF)
 
-#sort(apply(TED.tfidf1, 2, max), decreasing = TRUE)[1:10] ->EDA
-
+```{r, echo=TRUE, warning=FALSE}
 
 TED.freq1 %>% 
   top_n(20, frequency) %>%
@@ -27,21 +24,36 @@ TED.freq1 %>%
   geom_bar(stat = "identity") +
   coord_flip() + #change x y axis
   ylab("Frequency") + 
-  xlab("term")
-```
+  xlab("term") +
+  ggtitle("The top 20 most frequent terms")
 
-
-```{r}
-
-textplot_wordcloud(TED.dfm1) 
+textplot_wordcloud(TED.dfm1)
 
 ```
 
-Text 12: EM = Elon Musk, CA = Chris Anderson: Both words have high TFIDF because they are specific to this text.
+From the top 20 most frequent terms chart and wordcloud plot, we can see that the top 5 terms, which are "people", "make", "thing", "time", and "year", are common terms. Due to 3 different topics, we do not expect to see topic specific terms in the top ranks of the most frequent used terms chart. However, we notice some terms that are related to our topics such as world, "love", "ai", and "kind". 
+
 ```{r}
+TED.dfm1 %>% 
+  tidy() %>% 
+  top_n(5, count) %>% 
+  ggplot(aes(x = term, y = count)) + 
+  geom_bar(stat = "Identity") + 
+  coord_flip() +
+  theme(axis.text.y = element_text(size = 3.5),
+        axis.ticks.y = element_blank())  + 
+  facet_wrap(~document, ncol = 2)
+```
+
+We can associate the different texts with their most frequent terms. For example, text12 with “people”, “em”, and “ca” and "people" was expected since it is a common term, “em” and "ca" look more specific to this text.
+
+Subsequently, we also would like to investigate the highest TF-IDF terms to observe the specific terms per document (video). Therefore, we present the top 10 highest TF-IDF in documents as shown below. For text12, we notice that "people" does not appear in the text12 anymore as expected. This is because the TF-IDF of "people" is very low since it is not specific to any text. On the other hand, *em* and *ca* are specific terms for text12. We then have a closer look to the text12 and found the dialog between Elon Musk and Chris Anderson, so *em* and *ca* stand for Elon Musk and Chris Anderson, respectively.
+
+```{r, echo=TRUE, warning=FALSE}
+
 TED.tfidf1 %>% 
   tidy() %>% 
-  top_n(10, count) %>% #may change to top 10
+  top_n(5, count) %>% #may change to top 10
   ggplot(aes(x = term, y = count)) + 
   geom_col() + 
   coord_flip() + 
@@ -49,12 +61,14 @@ TED.tfidf1 %>%
         axis.ticks.y = element_blank())  + 
   facet_wrap(~document, ncol = 2)
 
-#TED$tanscript[12]
-
 ```
 
-link to the number of sample we have in cate: numbers of Relationships vdo are the highest among the others 
-```{r}
+To have an overall view of the terms with at least one large TF-IDF, we compute the max of the TF-IDF over all texts, for each term and present the top 20 highest TF-IDF. Regarding the below charts, we see that the terms *em* and *regret* have the largest weighted frequency, in the sense that the TF-IDF is large in at least one document. *em* and *regret* have TF-IDFs of 206.91226 and 203.06399, respectively.
+
+```{r, echo=TRUE, warning=FALSE}
+
+sort(apply(TED.tfidf1, 2, max), decreasing = TRUE)[1:10]
+
 TED.tfidf1 %>% 
   tidy() %>%
   group_by(term) %>%
@@ -70,11 +84,15 @@ TED.tfidf1 %>%
   ylab("term")
 ```
 
-
 ## 4.2 Lexical Diversity
-TTR: The lexical diversity analysis is conclusive for these data. We can see that text237, text131 have the highest richness of vocabulary among the other documents.
 
-```{r}
+We perform lexical diversity analysis by presenting the **Type-Token Ratio or TTR**. The function **textstat_lexdiv()** from the quanteda.textstats package is used in the computation.
+
+As we can see from the below chart and tables, the lexical diversity analysis is conclusive for these data. There are some texts which have very high TTR (approximately more than 0.8) meaning that those texts have richness of the vocabulary used in the texts. Then, the TTRs gradually decrease to the lowest TTR (approximately 0.3).
+
+From the below tables, text237 and text131 have the highest richness of vocabulary among the other texts (videos), their TTRs are 0.816 and 0.802, respectively, while text88 has the lowest TTR (0.3306) meaning that text88 has the lowest diversity of the vocabulary used in the text compared to the other texts(videos) in this corpus(sample).
+
+```{r, echo=TRUE, warning=FALSE}
 ttr_top <- TED.dfm1 %>% textstat_lexdiv() %>% arrange(desc(TTR)) %>% top_n(10, TTR)
 ttr_bottom <- TED.dfm1 %>% textstat_lexdiv() %>% arrange(desc(TTR)) %>% top_n(-10, TTR)
 
@@ -82,28 +100,15 @@ TED.dfm1 %>% textstat_lexdiv() %>%
   ggplot(aes(reorder(document, -TTR),
              TTR)) + 
   geom_bar(stat="identity") +
-  xlab("Text")
-```
+  xlab("Text") +
+  ggtitle("Type-Token Ratio per text")
+ 
+ttr_top
+ttr_bottom
 
-Find another way to set up window or remove?
-```{r}
-# TED.tk1 %>% textstat_lexdiv(
-#   measure = "MATTR",
-#   MATTR_window = 20)
-# 
-# TED.tk1 %>% 
-#   textstat_lexdiv(
-#     measure = "MATTR",
-#     MATTR_window = 20) %>% 
-#   ggplot(aes(reorder(
-#     document, -MATTR),
-#     MATTR)) + 
-#   geom_bar(stat="identity") +
-#   xlab("Text")
 ```
 
 ## 4.3 Keyness
-Do one chart per topic
 
 AI
 we can see that the keyness of terms in text1 compared to all the others include unsupervised supervised patient treatment. 
