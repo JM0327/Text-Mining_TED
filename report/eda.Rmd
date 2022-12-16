@@ -109,19 +109,7 @@ ttr_bottom
 
 ```
 
-## 4.3 Comparison of videos in term of Keyness
-
-The keyness is associated to terms in a document (or a set of documents) compared to another document (or set of documents). Regarding the below chart, we compute the keyness of terms in text1 compare to all the others. We notice that *unsupervised* and *supervised* are most used in text1 when compared to all the others. This is align with the topic of text1 which is AI.
-                                                               
-```{r, echo=TRUE, warning=FALSE}
-TED.keyness <- textstat_keyness(
-  TED.dfm1,
-  target = "text1")
-
-textplot_keyness(TED.keyness, labelsize = 3) 
-```
-
-## 4.4 Connections between terms by computing co-occurrence (Link between Words)
+## 4.3 Connections between terms by computing co-occurrence (Link between Words)
 
 We start exploring the links between words by computing the co-occurrences of words in documents. The larger the value the more often two words occur together (in documents). For example, the value of "intelligence" and "artificial" are 1,208 which is quit high compared to the other values below. Hence, we can say that these two words often occur together. 
 
