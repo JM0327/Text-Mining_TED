@@ -9,8 +9,9 @@ output: html_document
 source(here::here("scripts/setup.R"))
 ```
 
-# 4. Exploratory Data Analysis   
-In this section, we perform initial investigations on **TED** (transcript each video) to discover pattern and to sport anomalies with the summary statistics and graphical representations. We would like to present the analysis of the word frequency, the comparison of videos in term of lexical diversity, the comparison of videos in term of key words, and the connections between terms by computing co-occurrence.
+# 4. Exploratory Data Analysis  
+
+In this section, we perform initial investigations on **TED** (transcript each video) to discover pattern and to spot anomalies with the summary statistics and graphical representations. We would like to present the analysis of the word frequency, the comparison of videos in term of lexical diversity, the comparison of videos in term of keyness, and the connections between terms by computing co-occurrence.
 
 ## 4.1 Analysis of the word frequency (plot of frequencies and TF-IDF)
 
@@ -84,7 +85,7 @@ TED.tfidf1 %>%
   ylab("term")
 ```
 
-## 4.2 Lexical Diversity
+## 4.2 Comparison of videos in term of Lexical Diversity
 
 We perform lexical diversity analysis by presenting the **Type-Token Ratio or TTR**. The function **textstat_lexdiv()** from the quanteda.textstats package is used in the computation.
 
@@ -108,11 +109,11 @@ ttr_bottom
 
 ```
 
-## 4.3 Keyness
+## 4.3 Comparison of videos in term of Keyness
 
-AI
-we can see that the keyness of terms in text1 compared to all the others include unsupervised supervised patient treatment. 
-```{r}
+The keyness is associated to terms in a document (or a set of documents) compared to another document (or set of documents). Regarding the below chart, we compute the keyness of terms in text1 compare to all the others. We notice that *unsupervised* and *supervised* are most used in text1 when compared to all the others. This is align with the topic of text1 which is AI.
+                                                               
+```{r, echo=TRUE, warning=FALSE}
 TED.keyness <- textstat_keyness(
   TED.dfm1,
   target = "text1")
@@ -120,20 +121,25 @@ TED.keyness <- textstat_keyness(
 textplot_keyness(TED.keyness, labelsize = 3) 
 ```
 
-## 4.4 Link between Words
+## 4.4 Connections between terms by computing co-occurrence (Link between Words)
 
-The larger the value the more often two words occur together (in documents).
+We start exploring the links between words by computing the co-occurrences of words in documents. The larger the value the more often two words occur together (in documents). For example, the value of "intelligence" and "artificial" are 1,208 which is quit high compared to the other values below. Hence, we can say that these two words often occur together. 
 
-We now restrict the analysis to some terms as, otherwise, the result will be impossible to read. First, we restrict to the terms that have a frequency larger than 500
-```{r}
+```{r, echo=TRUE, warning=FALSE}
 TED.co <- fcm(TED.tk1, 
                 context = "document", 
                 tri = FALSE)
-TED.co
+
+kable(TED.co[1:10,1:10], caption = "The example of co-occurrence matrix") %>%
+  kable_styling(bootstrap_options = "bordered") %>%
+  kableExtra::scroll_box(width = "100%", height = "250px")
+
 ```
 
-```{r}
-#create index = words that have frequency > 8
+To read the co-occurrences matrix comfortably, we restrict the analysis to the terms that have a frequency larger than 500.
+
+```{r, echo=TRUE, warning=FALSE}
+#create index = words that have frequency > 500
 index <- TED.freq1 %>% 
   filter(frequency > 500) %>% 
   data.frame() %>% 
@@ -141,15 +147,19 @@ index <- TED.freq1 %>%
 
 #then refer them to co occurance table
 x <- TED.co[index$feature, index$feature]
-x
+kable(x[1:10,1:10], caption = "The example of co-occurrence matrix after restricted the frequency larger than 500") %>%
+  kable_styling(bootstrap_options = "bordered") %>%
+  kableExtra::scroll_box(width = "100%", height = "250px")
+
 ```
 
-To make a chart is possible to read, we decide that for less than 4500 co-occurences, there is no link (larger than 4500, there is one link).
-“make”, "thing", "people" are the central terms that co-occurs a lot with the others. They are common words in TED talk. Due to 3 different topics, similar to the other charts, we do not expect to see the specific words for each topic in this analysis.
+We then use the igraph library to create a network object and plot it. Although we restricted the frequency of terms larger than 500, it is still difficult to read the igraph. Therefore, we decide that for less than 4500 co-occurences, there is no link (larger than 4500, there is one link).
 
-For "climate", there is no co-occurance larger than 4500 but it's still in the word with frequency more than 500.
+From the igraph, we observe that *make*, *thing*, *people* are the central terms that co-occurs a lot with the others as they are not specific words to any texts. Again, due to 3 different topics, we do not expect to see the specific words for each topic in this analysis.
 
-```{r}
+For *climate*, we can see it in the igraph without any links to the other words. This is because there is no co-occurance larger than 4500 however, its frequency is larger than 500.
+
+```{r, echo=TRUE, warning=FALSE}
 x[x <= 4500] <- 0
 x[x > 4500] <- 1
 
