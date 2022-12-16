@@ -17,6 +17,8 @@ In addition to using Latent Semantic Analysis (LSA) and Latent Dirichlet Allocat
 
 The objective of word embedding is to learn a representation of words that reflects their co-occurrence patterns. To obtain these co-occurrence patterns, we will utilize the fcm function from the quanteta package. 
 
+Below, we present a sample of the resulting co-occurrence data. As can be seen, the co-occurrence between the words *artificial* and *intelligence* is relatively high (170), while the co-occurrence between the words *fly* and *intelligence* is considerably lower (0). These patterns are indicative of the relationships between the words in the corpus and will be useful in constructing the word embeddings.
+
 ```{r, echo=TRUE, warning=FALSE}
 TED.coo <- fcm(TED.tk,
                context = "window",
@@ -33,10 +35,8 @@ kable(TC,
    kableExtra::scroll_box(width = "100%", height = "250px")
 ```
 
-Below, we present a sample of the resulting co-occurrence data. As can be seen, the co-occurrence between the words *artificial* and *intelligence* is relatively high (170), while the co-occurrence between the words *fly* and *intelligence* is considerably lower (0). These patterns are indicative of the relationships between the words in the corpus and will be useful in constructing the word embeddings.
-
 ```{r, echo=TRUE, warning=FALSE}
-set.seed(123)
+set.seed(1234)
 p <- 2 # word embedding dimension
 TED.glove <- GlobalVectors$new(rank = p,
                                x_max = 10) # x_max is a needed technical option
