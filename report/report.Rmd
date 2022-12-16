@@ -16,6 +16,6 @@ text-align: left}
 </style>
 
 
-```{r child = c('intro.Rmd', 'data.Rmd','tokenization.Rmd', 'eda.Rmd', 'sentiment.Rmd', 'Topic modeling.Rmd', 'Embeding.Rmd', 'supervised.Rmd', 'conclusion.Rmd')}
-
+```{r child = c('intro.Rmd', 'data.Rmd','tokenization.Rmd', 'eda.Rmd', 'sentiment.Rmd', 'Topic modeling.Rmd', 'Embedding.Rmd', 'supervised.Rmd', 'conclusion.Rmd')}
+#, 
 ```

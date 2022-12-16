@@ -5,7 +5,7 @@ output: html_document
 
 # 2. Data Preparation    
 
-We acquire the transcript text from each TED talks' videos, we scraped the text from TED website, and our scraping was in the following order:   
+To acquire the transcript text from TED talk videos, we implemented a web scraping procedure from TED website, with the following steps:   
 
 -   Use RSelenium package open [TED website](https://www.ted.com/).    
 -   Go to TED Talks session by clicking the navigation bar button.     
@@ -44,7 +44,7 @@ remDr$findElement(using = "xpath", '//*[@id="filters-sort"]/optgroup/option[2]')
 
 ```
 
--   As the structure of TED website is not stable, it changes over time. In this case, we failed to click in each videos' page to scrape data immediately. Thus, we first scrape the videos' title name from the browser result page after the third step. The output in this step will be a data frame including the names of all videos we want to scrape further.         
+-   Due to the constantly changing structure of the TED website, we encountered difficulties when attempting to directly scrape data from the individual video pages. As a result, we implemented a workaround by first scraping the video titles from the browser result page after completing the third step of our web scraping procedure. This resulted in a data frame containing the names of all the videos that we wanted to further scrape for data.
 ```{r, eval = F,message = T,echo = T}
 # first crawl all videos' titles on the first page
 html_page <- remDr$getPageSource()[[1]]
@@ -177,6 +177,13 @@ As mentioned above, since during the process of scraping TED data, we found the 
 -   As we obtain the list of videos' title name first, we use the list of previously successfully obtained video information before interrupting to compare with the list of title names to obtain the list of videos to continue scraping.     
 -   We take turns using `css`, `xpath`,`link text` and `partial link text` four approaches to locate the position of the videos or the button of `Read transcript` and `Next`.     
 -   Considering this is a dynamic web crawling, we add `Sys.sleep` to each scraping and clicking step, so that the system can give the website react time.       
+
+-   We then saved the data in .csv format in the `data` folder
+```{r, eval = F,echo = T}
+TED_2 <- video_info
+TED <- left_join(title_all, TED_2, by="title")
+fwrite(TED, file = here::here("data/TED.csv"))
+```
 
 Finally, we set the closing function at the end in case closing the browser incorrectly would influence future scraping the next time.      
 

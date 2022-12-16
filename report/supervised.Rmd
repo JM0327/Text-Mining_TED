@@ -35,6 +35,8 @@ kable(as.data.frame(table(TED.tr$cate)) %>% rename(Topic = Var1, Count = Freq) ,
    kableExtra::scroll_box(width = "100%", height = "250px")
 ```
 
+After sub-sampling, the number of observations for each category is 327.
+
 ```{r,echo=T, warning= FALSE}
 set.seed(123)
 n2 <- min(table(TED.tr$cate)) ## 327
@@ -47,16 +49,11 @@ index.3 <- sample(size=n2, x=1:nrow(TED.tr.3), replace=FALSE)
 TED.tr.subs <- data.frame(rbind(TED.tr.1[index.1,], 
                                 TED.tr.2,
                                 TED.tr.3[index.3,]))
-```
-
-After sub-sampling, the number of observations for each category is 327.
-```{r,echo=T, warning= FALSE}
 
 kable(as.data.frame(table(TED.tr.subs$cate)) %>% rename(Topic = Var1, Count = Freq) , caption = "The number of observations per Topic, after sub-sampling") %>%
    kable_styling(bootstrap_options = "bordered") %>%
    kableExtra::scroll_box(width = "100%", height = "250px")
 ```
-### 8.1.1 Results
 
 We now use a random forest to predict the category from the LSA on TF. Then, the model accuracy is inspected on the test set. The results below show a confusion matrix and the associated statistics.
 
@@ -71,6 +68,8 @@ According to the confusion matrix, the accuracy is *0.8089* and the balanced acc
 ## 8.2 Supervised learning: LSA on TF-IDF   
 
 Now we use LSA on TF-IDF instead and repeat the same steps with the sub-sampling technique and the random forest model.
+The results below show a confusion matrix and the associated statistics.
+
 ```{r,echo=T, warning= FALSE}
 TED.lsa2.source <- cbind(document,TED.lsa2.source)
 row.names(TED.lsa2.source) <- a
@@ -91,10 +90,7 @@ index.3 <- sample(size=n2, x=1:nrow(TED.tr.3), replace=FALSE)
 TED.tr.subs <- data.frame(rbind(TED.tr.1[index.1,], 
                                 TED.tr.2,
                                 TED.tr.3[index.3,]))
-```
 
-The results below show a confusion matrix and the associated statistics.
-```{r}
 TED.fit2 <- ranger(TED.tr.subs$cate ~ ., 
                      data = TED.tr.subs[2:6])
 pred.te <- predict(TED.fit2, TED.te)
@@ -106,6 +102,8 @@ According to the confusion matrix, The accuracy is *0.8805* and the balanced acc
 
 For the next step, we use the document embedding from the Embedding section as features in the random forest model. Before running the model, we also use the sub-sampling technique to balance the data.
 
+The results below show a confusion matrix and associated statistics.
+
 ```{r,echo=T, warning= FALSE}
 row.names(TED.de.source) <- a
 TED.de.source$cate <- as.factor(TED.de.source$cate) 
@@ -114,14 +112,7 @@ set.seed(123)
 
 TED.Emb.tr <- TED.de.source[index.tr,c('cate','V1','V2')]
 TED.Emb.te <- TED.de.source[-index.tr,c('cate','V1','V2')]
-```
 
-```{r}
-#table(TED.tr$cate)
-```
-
-
-```{r,echo=T, warning= FALSE}
 set.seed(123)
 n2 <- min(table(TED.tr$cate)) ## 327
 
@@ -133,9 +124,7 @@ index.3 <- sample(size=n2, x=1:nrow(TED.Emb.tr.3), replace=FALSE)
 TED.Emb.tr.subs <- data.frame(rbind(TED.Emb.tr.1[index.1,], 
                                 TED.Emb.tr.2,
                                 TED.Emb.tr.3[index.3,]))
-```
-The results below show a confusion matrix and associated statistics.
-```{r,echo=T, warning= FALSE}
+
 set.seed(123)
 TED.Emb.fit <- ranger(TED.Emb.tr.subs$cate~., 
                       data = TED.Emb.tr.subs)
@@ -148,6 +137,8 @@ We find that the accuracy of this model is only *0.5597* and the balanced accura
 
 From the first 3 models, we find that the model with LSA (TF-IDF) has the highest accuracy. In this section, we will add additional information, including the number of likes and the number of views, as additional features in the supervised learning model. 
 
+After balancing the data, we train the model with random forest techniques and get the results as shown below.
+
 ```{r,echo=T, warning= FALSE}
 TED.de.source <- TED.de.source %>% 
   rename(V5=V1,V6=V2)
@@ -157,9 +148,7 @@ TED.LSA.Emb <- TED.lsa2.source %>%
 
 TED.Com.tr <- TED.LSA.Emb[index.tr,]
 TED.Com.te <- TED.LSA.Emb[-index.tr,]
-```
 
-```{r,echo=T, warning= FALSE}
 set.seed(123)
 TED.Com.tr.1 <- filter(TED.Com.tr, cate=="1") ## the category 1
 TED.Com.tr.2 <- filter(TED.Com.tr, cate=="2") ## the category 2
@@ -169,16 +158,11 @@ index.3 <- sample(size=n2, x=1:nrow(TED.Com.tr.3), replace=FALSE)
 TED.Com.tr.subs <- data.frame(rbind(TED.Com.tr.1[index.1,],
                                     TED.Com.tr.2,
                                     TED.Com.tr.3[index.3,]))
-```
 
-After balancing the data, we train the model with random forest techniques and get the results as shown below.
-
-```{r,echo=T, warning= FALSE}
 set.seed(123)
 TED.Com.fit <- ranger(TED.Com.tr.subs$cate~.,
                       data = TED.Com.tr.subs[2:10])
 pred.Com.te <- predict(TED.Com.fit, TED.Com.te)
-cm <- confusionMatrix(data=pred.Com.te$predictions, reference = TED.Com.te$cate)
-kable(cm$table, format = "html", caption = "Confusion Matrix")
+confusionMatrix(data=pred.Com.te$predictions, reference = TED.Com.te$cate)
 ```
 We find that the performance of the model slightly improves. The accuracy is increased from *0.8805* to *0.9078*. The balanced accuracy for class 1 is increased from *0.8897* to *0.9175*, for class 2 is increased from *0.9317* to *0.9465*, and for class 3 is increased from *0.9156* to *0.9335*. Thus, we conclude that this model is the best performing model.

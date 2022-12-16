@@ -12,7 +12,8 @@ source(here::here("scripts/setup.R"))
 # 3. Tokenization
 ## 3.1 Wrangling and parsing data
 
-After scraping data from TED.com website, we imported two tables saved in .csv format in the data folder, namely TED.csv and add_details_1.csv. The original tables consist of 330 observations with 11 variables and 310 observations with 2 variables, respectively. 
+After obtaining the transcript text from TED talk videos through web scraping and saving the scraped data in .csv format, we imported the resulting data into our analysis. Specifically, we imported two tables: "TED.csv" and "add_details_1.csv." The first table contained 330 observations and 11 variables, while the second table contained 310 observations and 2 variables. These tables were stored in a data folder and served as the primary source of data for our analysis.
+
 ```{r, echo=TRUE, warning=FALSE}
 # Import data
 TED <- read_csv(here::here("data/TED.csv")) #330 obs
@@ -22,14 +23,15 @@ kable(TED[1:10,], caption = "The example of original TED table") %>%
    kable_styling(bootstrap_options = "bordered") %>%
    kableExtra::scroll_box(width = "100%", height = "250px")
 
-kable(TED[1:10,], caption = "The example of original add_details_1 table") %>%
+kable(views_add[1:10,], caption = "The example of original add_details_1 table") %>%
    kable_styling(bootstrap_options = "bordered") %>%
    kableExtra::scroll_box(width = "100%", height = "250px")
 ```
 
-We then removed duplicated observations for both tables and combined two tables by title column and named it as **TED**. TED table currently contains 324 observations with 12 variables. However, we would like to focus just 6 interesting variables, which were title of videos (title), when the videos were posted (posted), topic of videos (cate), the number of likes for videos (likes), transcript (tanscript), and the number of views of videos (views_details), for our further analyses, so we selected them and removed the rest. The title variable would be employed for only a sentiment analysis. Hence, we stored all 6 variables in **TED_sentiment**, which performs the main table of the sentiment analysis, and removed the title variable from **TED**.
+We then removed any duplicated observations and combined the two tables by matching the "title" column. The resulting table, which we named **TED**, contained 324 observations and 12 variables. However, for the purpose of our analysis, we were only interested in six specific variables: title of videos (title), posting time (posted), topic of videos (cate), the number of likes for videos (likes), transcript (transcript), and the number of views of videos (views_details). Therefore, we selected these variables and removed the rest, creating a new table called **TED_sentiment** that would serve as the main table for our sentiment analysis. We also removed the title variable from the **TED** table, as it would not be used in the sentiment analysis.
 
-We also spotted 34 missing values (NAs) in **TED** and they were removed later. Therefore, **TED** have 286 observations which are 103 videos from AI, 86 videos from Climate change, and 97 videos from Relationships.
+After performing these operations, we discovered that the **TED** table contained 34 missing values (NAs), which we subsequently removed. The resulting **TED** table contained 286 observations, representing 103 videos on AI, 86 videos on Climate change, and 97 videos on Relationships. This table would serve as the basis for our further analyses.
+
 ```{r, echo=TRUE, warning=FALSE}
 # Delete duplicate rows of TED
 #sum(duplicated(TED)) #6
@@ -102,11 +104,12 @@ TED_sentiment <- TED
 TED <- TED %>% select(-title)
 ```
 
-We also converted the topic names, AI, Climate change, and Relationships, to be numbers 1, 2, and 3 under **cate** variable in **TED**, respectively. This would be easy to keep track of the videos in supervised and unsupervised learning analyses.
+In order to facilitate data analysis, we assigned numerical values to the categories of AI, Climate Change, and Relationships in the TED dataset. The variable **cate** was used to represent these categories, with AI being represented by number 1, Climate Change by number 2, and Relationships by number 3. This allows for easier tracking of the videos in both supervised and unsupervised learning analyses.
 
-Due to the limited number of available videos within the selected topics on TED website, we could not scrape more videos for unsupervised and supervised learning analyses, and we would like to obtain a robust model as well as avoid the overfitting problem. Therefore, we decided to increase the number of our observations by setting up a window of 20 sentences to be equal to 1 observation as we noticed that the transcripts each video comprised of more than 20 sentences. 
+Due to the limited number of available videos within the selected categories on the TED website, we were unable to gather a larger dataset for unsupervised and supervised learning analyses. In order to increase the number of observations while still avoiding overfitting and striving for a robust model, we decided to set a window of 20 sentences to be equal to one observation. This was based on the observation that the transcripts for each video typically contained more than 20 sentences.
 
-We split sentences by using the **tokenize_sentence()** function from quanteda package and created a new variable, namely **sub cate**. For example, sub_cate of 1.1 indicates that the observation is from the first transcript in AI (The first topic). We then created a **text** variable to indicate and identify each text. For example, a text of 1.1.1 indicates that this text comes from the first 20 sentences of the first transcript in AI topic. By doing this, the number of observations increases from 286 to 1,471 and we named this data frame as **TED_full**. To sum up, **TED_full** consists of 1,471 observations with 7 variables which are posted, cate, like, view, subcate, text, tanscript. 
+We split sentences by using the **tokenize_sentence()** function from the quanteda package and created a new variable, namely **sub cate**. For example, sub_cate of 1.1 indicates that the observation is from the first transcript in the AI category (The first topic). We then created a **text** variable to uniquely identify each text, with the format X.Y.Z indicating the Zth segment of 20 sentences in the Yth transcript of the Xth category. By using this approach, the number of observations increases from 286 to 1,471 and we named this data frame as **TED_full**. To sum up, **TED_full** consists of 1,471 observations with 7 variables which are posted, cate, like, view, subcate, text, tanscript. 
+
 
 ```{r, echo=TRUE, warning=FALSE}
 # Increase the number of instances: 20 sentences = 1 instance
@@ -165,7 +168,7 @@ kable(TED_full[10,], caption = "The example of  TED_full table") %>%
 
 ## 3.2 Tokenization
 
-We tokenized our transcript by quanteda package aiming to receive Document-Term Matrix and TFIDF matrix. In this section, we performed the tokenization twice. First, we tokenized **TED**, which consists of 286 videos/observations, to gain access into hidden insights each video and to observe the similarity and dissimilarity of each video. Second, we tokenized **TED_full**, which consists of 1,471 instances, for unsupervised and supervised learning analyses.
+We tokenized our transcript by the quanteda package aiming to receive Document-Term Matrix and TFIDF matrix. In this section, we performed the tokenization twice. First, we tokenized **TED**, which consists of 286 videos/observations, to gain access into hidden insights each video and to observe the similarity and dissimilarity of each video. Second, we tokenized **TED_full**, which consists of 1,471 instances, for unsupervised and supervised learning analyses.
 
 ### 3.2.1 Tokenization from TED 
 
@@ -208,29 +211,28 @@ kable(TED.tfidf1[1:10,1:10], caption = "The example of TFIDF matrix") %>%
 
 Additionally, the frequencies of terms can simply be obtained using **textstat_frequency()**. The terms are ranked by their frequency (rank = 1 for the most frequent), then plotted versus its rank as shown below to illustrate Zipf's law. According to the Zipf's law, *the frequency that a word appears is inversely proportional to its rank*, we notice that the pattern of the relationships of frequency and rank follows Zipf's law.
 
-```{r, echo=TRUE, warning=FALSE}
-TED.freq1 <- textstat_frequency(TED.dfm1)
-head(TED.freq1, 10)
+We then present the scatter plot on a log10-log10 scale. Although we expect to see a linear relationship from this plot, we observe some deviation from Zipf's law on the right hand side of the chart (high ranks/ low frequency words). The reason of the deviation might be that the text we are analyzing is not a representative sample of the language. For example, the text might contain a lot of technical terms. In other words, there are many specific terms.
 
-ggplot(TED.freq1,
+```{r, echo=TRUE, warning=FALSE ,fig.height = 4}
+TED.freq1 <- textstat_frequency(TED.dfm1)
+#head(TED.freq1, 10)
+
+zipf_orig<- ggplot(TED.freq1,
        aes(x = rank, y = frequency, label = feature)) + 
   geom_point() + 
   geom_text_repel() +
-  ggtitle("The relationships of frequency and rank")
+  ggtitle("The relationship of frequency and rank")
 
-```
-
-We then present the scatter plot on a log10-log10 scale. Although we expect to see a linear relation from this plot, we observe some deviation from Zipf's law on the right hand side of the chart (low frequency words). The reason of the deviation might be that the text we are analyzing is not a representative sample of the language. For example, the text might contain a lot of technical terms. In other words, there are many specific terms. 
-
-```{r, echo=TRUE, warning=FALSE}
-ggplot(TED.freq1,
+zipf_log <- ggplot(TED.freq1,
        aes(x = rank, y = frequency, label = feature)) + 
   geom_point() + 
   geom_text_repel() +
   scale_x_log10() +
   scale_y_log10() +
-  ggtitle("The relationships of frequency and rank on log10-log10 scale") 
+  ggtitle("The relationship of frequency and rank on log10-log10 scale") 
 
+(zipf_orig+zipf_log)+
+  plot_layout(guides = "collect") 
 ```
 
 
@@ -272,19 +274,17 @@ kable(TED.tfidf[1:10,1:10], caption = "The example of TFIDF matrix") %>%
 
 To demonstrate the Zipf's law, we again plotted 2 charts which are frequency against its rank and the former chart by applying log10 scale. The results of the 2 charts are similar to the previous ones.
 
-```{r, echo=TRUE, warning=FALSE}
+```{r, echo=TRUE, warning=FALSE, fig.height = 4}
 TED.freq <- textstat_frequency(TED.dfm)
-head(TED.freq, 10)
+#head(TED.freq, 10)
 
-ggplot(TED.freq,
+zipf_orig <- ggplot(TED.freq,
        aes(x = rank, y = frequency, label = feature)) + 
   geom_point() + 
   geom_text_repel() +
   ggtitle("The relationships of frequency and rank")
-```
 
-```{r, echo=TRUE, warning=FALSE}
-ggplot(TED.freq,
+zipf_log <- ggplot(TED.freq,
        aes(x = rank, y = frequency, label = feature)) + 
   geom_point() + 
   geom_text_repel() +
@@ -292,6 +292,8 @@ ggplot(TED.freq,
   scale_y_log10() +
   ggtitle("The relationships of frequency and rank on log10-log10 scale") 
 
+(zipf_orig+zipf_log)+
+  plot_layout(guides = "collect") 
 ```
 
 
