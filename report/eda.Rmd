@@ -9,14 +9,10 @@ output: html_document
 source(here::here("scripts/setup.R"))
 ```
 
-# 4. EDA   
+# 4. Exploratory Data Analysis   
+In this section, we perform initial investigations on **TED** (transcript each video) to discover pattern and to sport anomalies with the summary statistics and graphical representations. We would like to present the analysis of the word frequency, the comparison of videos in term of lexical diversity, the comparison of videos in term of key words, and the connections between terms by computing co-occurance.
 
--Analysis of the word frequencies: compute and show frequencies and TF-IDF.
--Comparison of the speeches in terms of lexical diversity
--Comparison of two speeches in terms of key words (in the answer below Trump=target vs. Obama=reference).
--Show links between terms (compute co-occurrences and try to build a network)
-
-# Plot of Frequencies and TF-IDF
+## 4.1 Plot of Frequencies and TF-IDF
 -because we have 3 different topics so we dont expect topic specific words in the most frequent used terms. Altho we can see some words related to our topic like love, ai, kind, world, human
 ```{r}
 
@@ -75,7 +71,7 @@ TED.tfidf1 %>%
 ```
 
 
-# Lexical Diversity
+## 4.2 Lexical Diversity
 TTR: The lexical diversity analysis is conclusive for these data. We can see that text237, text131 have the highest richness of vocabulary among the other documents.
 
 ```{r}
@@ -106,7 +102,7 @@ Find another way to set up window or remove?
 #   xlab("Text")
 ```
 
-# Keyness
+## 4.3 Keyness
 Do one chart per topic
 
 AI
@@ -119,7 +115,7 @@ TED.keyness <- textstat_keyness(
 textplot_keyness(TED.keyness, labelsize = 3) 
 ```
 
-# Link between Words
+## 4.4 Link between Words
 
 The larger the value the more often two words occur together (in documents).
 
