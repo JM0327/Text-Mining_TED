@@ -30,7 +30,7 @@ TED.te <- TED.lsa.source[-index.tr,]
 The data is unbalanced so we need to use the sub-sampling method to balance the data. The below table shows that there are 450, 327 and 401 observations for Topic 1 (AI), 2 (Climate) and 3 (Relationship) respectively.
 
 ```{r,echo=T, warning= FALSE}
-kable(as.data.frame(table(TED.tr$cate)) %>% rename(Topic = Var1, Count = Freq) , caption = "The number of observations per Topic") %>%
+kable(as.data.frame(table(TED.tr$cate)) %>% rename(Topic = Var1, Count = Freq) , caption = "The number of observations per Topic", caption.above = TRUE) %>%
    kable_styling(bootstrap_options = "bordered") %>%
    kableExtra::scroll_box(width = "100%", height = "250px")
 ```
@@ -50,7 +50,7 @@ TED.tr.subs <- data.frame(rbind(TED.tr.1[index.1,],
                                 TED.tr.2,
                                 TED.tr.3[index.3,]))
 
-kable(as.data.frame(table(TED.tr.subs$cate)) %>% rename(Topic = Var1, Count = Freq) , caption = "The number of observations per Topic, after sub-sampling") %>%
+kable(as.data.frame(table(TED.tr.subs$cate)) %>% rename(Topic = Var1, Count = Freq) , caption = "The number of observations per Topic, after sub-sampling", caption.above = TRUE) %>%
    kable_styling(bootstrap_options = "bordered") %>%
    kableExtra::scroll_box(width = "100%", height = "250px")
 ```
@@ -61,7 +61,27 @@ We now use a random forest to predict the category from the LSA on TF. Then, the
 TED.fit <- ranger(TED.tr.subs$cate ~ ., 
                      data = TED.tr.subs[2:6])
 pred.te <- predict(TED.fit, TED.te)
-confusionMatrix(data=pred.te$predictions, reference = TED.te$cate)
+confusion_matrix_output <- confusionMatrix(data=pred.te$predictions, reference = TED.te$cate)
+
+# Extract the confusion matrix, accuracy, and balanced accuracies from the output
+confusion_matrix <- confusion_matrix_output$table
+accuracy <- confusion_matrix_output$overall[1]
+balanced_accuracies <- confusion_matrix_output$byClass[, "Balanced Accuracy"]
+
+# Convert the confusion matrix and balanced accuracies to data frames
+confusion_matrix_df <- as.data.frame.matrix(confusion_matrix)
+rownames(confusion_matrix_df) <- c("Topic 1", "Topic 2", "Topic 3")
+colnames(confusion_matrix_df) <- c("Topic 1", "Topic 2", "Topic 3")
+
+confusion_matrix_df$Balanced_Accuracy <- balanced_accuracies
+
+# Use kable to display the confusion matrix and balanced accuracies
+kable(confusion_matrix_df, format = "html", align = "c", caption = "Confusion Matrix, Accuracy and Balanced Accuracy", caption.above = TRUE)  %>%
+kable_styling(full_width = FALSE) %>%
+  add_footnote(sprintf("Accuracy: %.5f",accuracy))
+
+
+
 ```
 According to the confusion matrix, the accuracy is *0.8089* and the balanced accuracy for class 1 is *0.8340*, for class 2 is *0.8911*, and for class 3 is *0.8576*.
 
@@ -94,7 +114,24 @@ TED.tr.subs <- data.frame(rbind(TED.tr.1[index.1,],
 TED.fit2 <- ranger(TED.tr.subs$cate ~ ., 
                      data = TED.tr.subs[2:6])
 pred.te <- predict(TED.fit2, TED.te)
-confusionMatrix(data=pred.te$predictions, reference = TED.te$cate)
+confusion_matrix_output <- confusionMatrix(data=pred.te$predictions, reference = TED.te$cate)
+
+# Extract the confusion matrix, accuracy, and balanced accuracies from the output
+confusion_matrix <- confusion_matrix_output$table
+accuracy <- confusion_matrix_output$overall[1]
+balanced_accuracies <- confusion_matrix_output$byClass[, "Balanced Accuracy"]
+
+# Convert the confusion matrix and balanced accuracies to data frames
+confusion_matrix_df <- as.data.frame.matrix(confusion_matrix)
+rownames(confusion_matrix_df) <- c("Topic 1", "Topic 2", "Topic 3")
+colnames(confusion_matrix_df) <- c("Topic 1", "Topic 2", "Topic 3")
+
+confusion_matrix_df$Balanced_Accuracy <- balanced_accuracies
+
+# Use kable to display the confusion matrix and balanced accuracies
+kable(confusion_matrix_df, format = "html", align = "c", caption = "Confusion Matrix, Accuracy and Balanced Accuracy", caption.above = TRUE)  %>%
+kable_styling(full_width = FALSE) %>%
+  add_footnote(sprintf("Accuracy: %.5f",accuracy))
 ```
 According to the confusion matrix, The accuracy is *0.8805* and the balanced accuracy for class 1 is *0.8897*, for class 2 is *0.9317*, and for class 3 is *0.9156*. Thus, we can conclude that the model build on features using LSA on TF-ITF has a higher accurancy than the model build on features using LSA on TF.
 
@@ -129,9 +166,28 @@ set.seed(123)
 TED.Emb.fit <- ranger(TED.Emb.tr.subs$cate~., 
                       data = TED.Emb.tr.subs)
 pred.Emb.te <- predict(TED.Emb.fit, TED.Emb.te)
-confusionMatrix(data=pred.Emb.te$predictions, reference = TED.Emb.te$cate)
+confusion_matrix_output <- confusionMatrix(data=pred.Emb.te$predictions, reference = TED.Emb.te$cate)
+
+
+# Extract the confusion matrix, accuracy, and balanced accuracies from the output
+confusion_matrix <- confusion_matrix_output$table
+accuracy <- confusion_matrix_output$overall[1]
+balanced_accuracies <- confusion_matrix_output$byClass[, "Balanced Accuracy"]
+
+# Convert the confusion matrix and balanced accuracies to data frames
+confusion_matrix_df <- as.data.frame.matrix(confusion_matrix)
+rownames(confusion_matrix_df) <- c("Topic 1", "Topic 2", "Topic 3")
+colnames(confusion_matrix_df) <- c("Topic 1", "Topic 2", "Topic 3")
+
+confusion_matrix_df$Balanced_Accuracy <- balanced_accuracies
+
+# Use kable to display the confusion matrix and balanced accuracies
+kable(confusion_matrix_df, format = "html", align = "c", caption = "Confusion Matrix, Accuracy and Balanced Accuracy", caption.above = TRUE)  %>%
+kable_styling(full_width = FALSE) %>%
+  add_footnote(sprintf("Accuracy: %.5f",accuracy))
+
 ```
-We find that the accuracy of this model is only *0.5597* and the balanced accuracy for class 1 is *0.6410*, for class 2 is *0.6651*, and for class 3 is *0.7136*, which are much lower than the accuracies from the previous models. 
+We find that the accuracy of this model is only *0.6143* and the balanced accuracy for class 1 is *0.6540*, for class 2 is *0.8788*, and for class 3 is *0.6225*, which are much lower than the accuracies from the previous models. 
 
 ## 8.4 Supervised learning: LSA(TF-IDF), like and views 
 
@@ -144,7 +200,8 @@ TED.de.source <- TED.de.source %>%
   rename(V5=V1,V6=V2)
 TED.LSA.Emb <- TED.lsa2.source %>% 
   cbind(TED.de.source) %>% 
-  select(-7)
+  select(-7) %>%
+  select(-c('V5','V6'))
 
 TED.Com.tr <- TED.LSA.Emb[index.tr,]
 TED.Com.te <- TED.LSA.Emb[-index.tr,]
@@ -161,8 +218,25 @@ TED.Com.tr.subs <- data.frame(rbind(TED.Com.tr.1[index.1,],
 
 set.seed(123)
 TED.Com.fit <- ranger(TED.Com.tr.subs$cate~.,
-                      data = TED.Com.tr.subs[2:10])
+                      data = TED.Com.tr.subs[2:8])
 pred.Com.te <- predict(TED.Com.fit, TED.Com.te)
-confusionMatrix(data=pred.Com.te$predictions, reference = TED.Com.te$cate)
+confusion_matrix_output <- confusionMatrix(data=pred.Com.te$predictions, reference = TED.Com.te$cate)
+
+# Extract the confusion matrix, accuracy, and balanced accuracies from the output
+confusion_matrix <- confusion_matrix_output$table
+accuracy <- confusion_matrix_output$overall[1]
+balanced_accuracies <- confusion_matrix_output$byClass[, "Balanced Accuracy"]
+
+# Convert the confusion matrix and balanced accuracies to data frames
+confusion_matrix_df <- as.data.frame.matrix(confusion_matrix)
+rownames(confusion_matrix_df) <- c("Topic 1", "Topic 2", "Topic 3")
+colnames(confusion_matrix_df) <- c("Topic 1", "Topic 2", "Topic 3")
+
+confusion_matrix_df$Balanced_Accuracy <- balanced_accuracies
+
+# Use kable to display the confusion matrix and balanced accuracies
+kable(confusion_matrix_df, format = "html", align = "c", caption = "Confusion Matrix, Accuracy and Balanced Accuracy", caption.above = TRUE)  %>%
+kable_styling(full_width = FALSE) %>%
+  add_footnote(sprintf("Accuracy: %.5f",accuracy))
 ```
-We find that the performance of the model slightly improves. The accuracy is increased from *0.8805* to *0.9078*. The balanced accuracy for class 1 is increased from *0.8897* to *0.9175*, for class 2 is increased from *0.9317* to *0.9465*, and for class 3 is increased from *0.9156* to *0.9335*. Thus, we conclude that this model is the best performing model.
+We find that the performance of the model slightly improves. The accuracy is increased from *0.8805* to *0.9044*. The balanced accuracy for class 1 is increased from *0.8897* to *0.9131*, for class 2 is increased from *0.9317* to *0.9465*, and for class 3 is increased from *0.9156* to *0.9310*. Thus, we conclude that this model is the best performing model.

@@ -56,7 +56,7 @@ Since there are near to 300 transcript (videos), we would like to extract 20 vid
 
 In this part, we applied the NRC method in two different ways, one without scaling and another with re-scaling the sentiment by their length in the documents.
 
-```{r,results='hide',message=FALSE, echo=TRUE, warning=FALSE}
+```{r,results='hide',message=FALSE, echo=TRUE, warning=FALSE,fig.height = 6.5}
 # Sub data for checking Video likes topic
 TED.nrc <- TED.sent.nrc %>% 
   group_by(title,cate,likes,sentiment) %>% summarise(n=n())
@@ -93,7 +93,7 @@ taillike20%>%
 
 **Re-scale sentiment by their length:**   
 
-```{r, echo=TRUE, warning=FALSE}
+```{r, echo=TRUE, warning=FALSE,fig.height = 6.5}
 
 # the frequencies of sentiments are computed, by document
 TED.sent.nrc.total <- TED.sent.nrc %>% 
@@ -151,7 +151,7 @@ We did not observe any significant differences in the distribution of sentiments
 In order to examine the frequency of sentiment in different topics, We can then compare the results to determine which sentiments are more prevalent in each topic. For example, if we were to analyze the Climate Change topic, we might expect to see a higher frequency of negative or fear-related sentiments, due to the potentially catastrophic consequences of climate change. On the other hand, if we were to analyze the AI topic, we might expect to see a higher frequency of anticipation or positive sentiments, as AI has the potential to bring about many benefits and advancements.
 
 
-```{r,results='hide',fig.height=5, echo=TRUE, warning=FALSE}
+```{r,results='hide',fig.height=4, echo=TRUE, warning=FALSE}
 # it is hard to check the sentiment for each video, then check it for each cate
 
 TED.nrc %>% 
@@ -178,7 +178,7 @@ In this case, we begin to assume that positive sentiment actually is the main se
 Besides the initial assumption, we would like to check one more assumption whether the positive sentiment appears in all videos, by using the value-based method: Afinn.    
 
 
-```{r, echo=TRUE, warning=FALSE}
+```{r, echo=TRUE, warning=FALSE,fig.height = 4}
 # Afinn
 
 TED.sent.afinn <- 
@@ -209,7 +209,7 @@ video_sentiscore <- TED.sent.afinn %>%
 
 ### 5.2.1 Sentiment v.s. Likes    
 
-```{r,results='hide',fig.height=5, echo=TRUE, warning=FALSE}
+```{r,results='hide',fig.height=2.5, echo=TRUE, warning=FALSE}
 TED.sent.afinn.like <- TED.sent.afinn %>% 
   group_by(title,cate,likes) %>% 
   summarize(Score = mean(value))
@@ -225,7 +225,7 @@ Since the number of likes for each video is relatively similar, and only some vi
 
 ### 5.2.2 Sentiment v.s. topics        
 
-```{r,results='hide',fig.height=5, echo=TRUE, warning=FALSE}
+```{r,results='hide',fig.height=2.5, echo=TRUE, warning=FALSE}
 TED.sent.afinn.cate <- TED.sent.afinn %>% 
   group_by(title,cate) %>% 
   summarize(Score = mean(value))
@@ -240,7 +240,7 @@ The sentiment values for each topic are relatively similar, and they are all in 
 
 ### 5.2.3 Sentiment over years   
 
-```{r,results='hide',fig.height=5, echo=TRUE, warning=FALSE}
+```{r,results='hide',fig.height=2.5, echo=TRUE, warning=FALSE}
 TED.sent.afinn.year <- TED.sent.afinn 
 
 TED.sent.afinn.year <- TED.sent.afinn.year %>% 
@@ -262,7 +262,7 @@ The talks have huge fluctuations over years. Overall, the trend of sentiment val
 
 In this section, we would like to check if the results would change after using valence-shifters.     
 
-```{r,results='hide', echo=TRUE, warning=FALSE}
+```{r,results='hide', echo=TRUE, warning=FALSE,fig.height = 3}
 ## split by sentences
 TED_sentiment_text <- get_sentences(TED_sentiment$tanscript)
 ## Compute the sentiment by sentences

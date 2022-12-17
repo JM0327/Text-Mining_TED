@@ -169,14 +169,14 @@ video_info <- data.frame(
   "tanscript" = tanscript)
 ```
 
--   After clicking in each video's page, we first click `Read transcript` button to extent the transcript text area. Then, we begin to scrape the all related information that we might use in the following analysis.    
--   After scraping the information of each videos, there is a step of going back to the browser result page.     
+-   After clicking in each video's page, we first clicked `Read transcript` button to extent the transcript text area. Then, we began to scrape the all related information that we might use in the following analysis.    
+-   After scraping the information of each videos, there was a step of going back to the browser result page.     
 
 As mentioned above, since during the process of scraping TED data, we found the `for loop` of clicking in each video and scraping text is often interrupted, and some `xpaths` would fail to use in the case of different day operations. In this case, we have adopted the following response methods：   
 
--   As we obtain the list of videos' title name first, we use the list of previously successfully obtained video information before interrupting to compare with the list of title names to obtain the list of videos to continue scraping.     
--   We take turns using `css`, `xpath`,`link text` and `partial link text` four approaches to locate the position of the videos or the button of `Read transcript` and `Next`.     
--   Considering this is a dynamic web crawling, we add `Sys.sleep` to each scraping and clicking step, so that the system can give the website react time.       
+-   As we obtained the list of videos' title name first, we used the list of previously successfully obtained video information before interrupting to compare with the list of title names to obtain the list of videos to continue scraping.     
+-   We took turns using `css`, `xpath`,`link text` and `partial link text` four approaches to locate the position of the videos or the button of `Read transcript` and `Next`.     
+-   Considering this is a dynamic web crawling, we added `Sys.sleep` to each scraping and clicking step, so that the system could give the website react time.       
 
 -   We then saved the data in .csv format in the `data` folder
 ```{r, eval = F,echo = T}

@@ -12,7 +12,7 @@ source(here::here("scripts/setup.R"))
 # 3. Tokenization
 ## 3.1 Wrangling and parsing data
 
-After obtaining the transcript text from TED talk videos through web scraping and saving the scraped data in .csv format, we imported the resulting data into our analysis. Specifically, we imported two tables: "TED.csv" and "add_details_1.csv." The first table contained 330 observations and 11 variables, while the second table contained 310 observations and 2 variables. These tables were stored in a data folder and served as the primary source of data for our analysis.
+After obtaining the transcript text from TED talk videos through web scraping and saving the scraped data in .csv format, we import the resulting data into our analysis. Specifically, we import two tables: "TED.csv" and "add_details_1.csv." The first table contains 330 observations and 11 variables, while the second table contains 310 observations and 2 variables. These tables are stored in a data folder and serve as the primary source of data for our analysis.
 
 ```{r, echo=TRUE, warning=FALSE}
 # Import data
@@ -28,9 +28,9 @@ kable(views_add[1:10,], caption = "The example of original add_details_1 table")
    kableExtra::scroll_box(width = "100%", height = "250px")
 ```
 
-We then removed any duplicated observations and combined the two tables by matching the "title" column. The resulting table, which we named **TED**, contained 324 observations and 12 variables. However, for the purpose of our analysis, we were only interested in six specific variables: title of videos (title), posting time (posted), topic of videos (cate), the number of likes for videos (likes), transcript (transcript), and the number of views of videos (views_details). Therefore, we selected these variables and removed the rest, creating a new table called **TED_sentiment** that would serve as the main table for our sentiment analysis. We also removed the title variable from the **TED** table, as it would not be used in the sentiment analysis.
+We then remove any duplicated observations and combine the two tables by matching the "title" column. The resulting table, which we name **TED**, containing 324 observations and 12 variables. However, for the purpose of our analysis, we are only interested in six specific variables: title of videos (title), posting time (posted), topic of videos (cate), the number of likes for videos (likes), transcript (transcript), and the number of views of videos (views_details). Therefore, we select these variables and removed the rest, creating a new table called **TED_sentiment** that would serve as the main table for our sentiment analysis. We also remove the title variable from the **TED** table, as it would not be used in the sentiment analysis.
 
-After performing these operations, we discovered that the **TED** table contained 34 missing values (NAs), which we subsequently removed. The resulting **TED** table contained 286 observations, representing 103 videos on AI, 86 videos on Climate change, and 97 videos on Relationships. This table would serve as the basis for our further analyses.
+After performing these operations, we discover that the **TED** table containing 34 missing values (NAs), which we subsequently remove. The resulting **TED** table containing 286 observations, representing 103 videos on AI, 86 videos on Climate change, and 97 videos on Relationships. This table would serve as the basis for our further analyses.
 
 ```{r, echo=TRUE, warning=FALSE}
 # Delete duplicate rows of TED
@@ -62,9 +62,9 @@ kable(catenum[,], caption = "The number of videos per topics") %>%
    kableExtra::scroll_box(width = "100%", height = "250px")
 ```
 
-Subsequently, it turned to data parsing step. We converted posting time, the number of likes, the number of views to be in the appropriate format for further analyses. For example, the posting time for the first video, *"How does artificial intelligence learn?"*, was Mar 2021 in the original TED table. It was converted to be 2021-03-01. 
+Subsequently, it turns to data parsing step. We convert posting time, the number of likes, the number of views to be in the appropriate format for further analyses. For example, the posting time for the first video, *"How does artificial intelligence learn?"*, is Mar 2021 in the original TED table. It is converted to be 2021-03-01. 
 
-For the transcript, there were the number of translated languages and the details of the translation at the beginning of the transcript every video. In this project, we focus only the actual transcript. Thus, we removed this part out of the transcript. For example, the first sentence of the transcript in the first video,*"How does artificial intelligence learn?"*, was "Transcript (28 Languages)Bahasa IndonesiaDeutschEnglishEspañolFrançaisItalianoMagyarPolskiPortuguês brasileiroPortuguês de PortugalRomânăTiếng ViệtTürkçeΕλληνικάРусскийСрпски, Srpskiעבריתالعربيةفارسىکوردی سۆرانیবাংলাதமிழ்ภาษาไทยမြန်မာဘာသာ中文 (简体)中文 (繁體)日本語한국어". We removed this part out of the transcript.
+For the transcript, there are the number of translated languages and the details of the translation at the beginning of the transcript every video. In this project, we focus only the actual transcript. Thus, we remove this part out of the transcript. For example, the first sentence of the transcript in the first video,*"How does artificial intelligence learn?"*, is "Transcript (28 Languages)Bahasa IndonesiaDeutschEnglishEspañolFrançaisItalianoMagyarPolskiPortuguês brasileiroPortuguês de PortugalRomânăTiếng ViệtTürkçeΕλληνικάРусскийСрпски, Srpskiעבריתالعربيةفارسىکوردی سۆرانیবাংলাதமிழ்ภาษาไทยမြန်မာဘာသာ中文 (简体)中文 (繁體)日本語한국어". We remove this part out of the transcript.
 
 ```{r, echo=TRUE, warning=FALSE}
 # Parse data
@@ -104,11 +104,11 @@ TED_sentiment <- TED
 TED <- TED %>% select(-title)
 ```
 
-In order to facilitate data analysis, we assigned numerical values to the categories of AI, Climate Change, and Relationships in the TED dataset. The variable **cate** was used to represent these categories, with AI being represented by number 1, Climate Change by number 2, and Relationships by number 3. This allows for easier tracking of the videos in both supervised and unsupervised learning analyses.
+In order to facilitate data analysis, we assigne numerical values to the categories of AI, Climate Change, and Relationships in the TED dataset. The variable **cate** is used to represent these categories, with AI being represented by number 1, Climate Change by number 2, and Relationships by number 3. This allows for easier tracking of the videos in both supervised and unsupervised learning analyses.
 
-Due to the limited number of available videos within the selected categories on the TED website, we were unable to gather a larger dataset for unsupervised and supervised learning analyses. In order to increase the number of observations while still avoiding overfitting and striving for a robust model, we decided to set a window of 20 sentences to be equal to one observation. This was based on the observation that the transcripts for each video typically contained more than 20 sentences.
+Due to the limited number of available videos within the selected categories on the TED website, we are unable to gather a larger dataset for unsupervised and supervised learning analyses. In order to increase the number of observations while still avoiding overfitting and striving for a robust model, we decide to set a window of 20 sentences to be equal to one observation. This is based on the observation that the transcript for each video typically contains more than 20 sentences.
 
-We split sentences by using the **tokenize_sentence()** function from the quanteda package and created a new variable, namely **sub cate**. For example, sub_cate of 1.1 indicates that the observation is from the first transcript in the AI category (The first topic). We then created a **text** variable to uniquely identify each text, with the format X.Y.Z indicating the Zth segment of 20 sentences in the Yth transcript of the Xth category. By using this approach, the number of observations increases from 286 to 1,471 and we named this data frame as **TED_full**. To sum up, **TED_full** consists of 1,471 observations with 7 variables which are posted, cate, like, view, subcate, text, tanscript. 
+We split sentences by using the **tokenize_sentence()** function from the quanteda package and create a new variable, namely **sub cate**. For example, sub_cate of 1.1 indicates that the observation is from the first transcript in the AI category (The first topic). We then created a **text** variable to uniquely identify each text, with the format X.Y.Z indicating the Zth segment of 20 sentences in the Yth transcript of the Xth category. By using this approach, the number of observations increases from 286 to 1,471 and we named this data frame as **TED_full**. To sum up, **TED_full** consists of 1,471 observations with 7 variables which are posted, cate, like, view, subcate, text, tanscript. 
 
 
 ```{r, echo=TRUE, warning=FALSE}

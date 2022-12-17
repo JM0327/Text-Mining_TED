@@ -25,3 +25,4 @@ One of the limitations of the data used in our analysis is the difficulty of obt
 In addition, we can expand our research based on the available information. For example, we can analyze trends in TED talk releases and predict their release schedule, which can help investors understand TED's plans and the messages it intends to deliver to its audience. We can also analyze the variations in the wording of speeches given by the same speakers or on the same topics. Additionally, TED currently has nearly 400 options for categorizing videos, which may not be ideal for users trying to find a specific topic. Therefore, TED can improve the classification of videos by analyzing which categories viewers are more inclined to comment on in their feedback.     
 
 # Reference   
+TED, https://www.ted.com/

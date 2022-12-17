@@ -35,7 +35,7 @@ kable(TC,
    kableExtra::scroll_box(width = "100%", height = "250px")
 ```
 
-```{r, echo=TRUE, warning=FALSE}
+```{r, echo=TRUE, warning=FALSE,results="hide"}
 # RcppParallel::setThreadOptions(1)
 set.seed(123)
 p <- 2 # word embedding dimension

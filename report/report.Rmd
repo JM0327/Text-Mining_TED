@@ -17,5 +17,5 @@ text-align: left}
 
 
 ```{r child = c('intro.Rmd', 'data.Rmd','tokenization.Rmd', 'eda.Rmd', 'sentiment.Rmd', 'Topic modeling.Rmd', 'Embedding.Rmd', 'supervised.Rmd', 'conclusion.Rmd')}
-#, 
+ 
 ```

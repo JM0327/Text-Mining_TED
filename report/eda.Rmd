@@ -15,7 +15,7 @@ In this section, we perform initial investigations on **TED** (transcript each v
 
 ## 4.1 Analysis of the word frequency (plot of frequencies and TF-IDF)
 
-```{r, echo=TRUE, warning=FALSE}
+```{r, echo=TRUE, warning=FALSE,fig.height = 3}
 
 TED.freq1 %>% 
   top_n(20, frequency) %>%
@@ -34,7 +34,7 @@ textplot_wordcloud(TED.dfm1)
 
 From the top 20 most frequent terms chart and wordcloud plot, we can see that the top 5 terms, which are "people", "make", "thing", "time", and "year", are common terms. Due to 3 different topics, we do not expect to see topic specific terms in the top ranks of the most frequent used terms chart. However, we notice some terms that are related to our topics such as world, "love", "ai", and "kind". 
 
-```{r}
+```{r,fig.height = 3}
 TED.dfm1 %>% 
   tidy() %>% 
   top_n(5, count) %>% 
@@ -50,7 +50,7 @@ We can associate the different texts with their most frequent terms. For example
 
 Subsequently, we also would like to investigate the highest TF-IDF terms to observe the specific terms per document (video). Therefore, we present the top 10 highest TF-IDF in documents as shown below. For text12, we notice that "people" does not appear in the text12 anymore as expected. This is because the TF-IDF of "people" is very low since it is not specific to any text. On the other hand, *em* and *ca* are specific terms for text12. We then have a closer look to the text12 and found the dialog between Elon Musk and Chris Anderson, so *em* and *ca* stand for Elon Musk and Chris Anderson, respectively.
 
-```{r, echo=TRUE, warning=FALSE}
+```{r, echo=TRUE, warning=FALSE,fig.height = 3}
 
 TED.tfidf1 %>% 
   tidy() %>% 
@@ -64,11 +64,11 @@ TED.tfidf1 %>%
 
 ```
 
-To have an overall view of the terms with at least one large TF-IDF, we compute the max of the TF-IDF over all texts, for each term and present the top 20 highest TF-IDF. Regarding the below charts, we see that the terms *em* and *regret* have the largest weighted frequency, in the sense that the TF-IDF is large in at least one document. *em* and *regret* have TF-IDFs of 206.91226 and 203.06399, respectively.
+To have an overall view of the terms with at least one large TF-IDF, we compute the max of the TF-IDF over all texts, for each term and present the top 20 highest TF-IDF. Regarding the below charts, we see that the terms *em* and *regret* have the largest weighted frequency, in the sense that the TF-IDF is large in at least one document. *em* and *regret* have TF-IDFs of over 200.
 
-```{r, echo=TRUE, warning=FALSE}
+```{r, echo=TRUE, warning=FALSE,fig.height = 3}
 
-sort(apply(TED.tfidf1, 2, max), decreasing = TRUE)[1:10]
+#sort(apply(TED.tfidf1, 2, max), decreasing = TRUE)[1:10]
 
 TED.tfidf1 %>% 
   tidy() %>%
@@ -93,7 +93,7 @@ As we can see from the below chart and tables, the lexical diversity analysis is
 
 From the below tables, text237 and text131 have the highest richness of vocabulary among the other texts (videos), their TTRs are 0.816 and 0.802, respectively, while text88 has the lowest TTR (0.3306) meaning that text88 has the lowest diversity of the vocabulary used in the text compared to the other texts(videos) in this corpus(sample).
 
-```{r, echo=TRUE, warning=FALSE}
+```{r, echo=TRUE, warning=FALSE,fig.height = 3}
 ttr_top <- TED.dfm1 %>% textstat_lexdiv() %>% arrange(desc(TTR)) %>% top_n(10, TTR)
 ttr_bottom <- TED.dfm1 %>% textstat_lexdiv() %>% arrange(desc(TTR)) %>% top_n(-10, TTR)
 
@@ -104,9 +104,9 @@ TED.dfm1 %>% textstat_lexdiv() %>%
   xlab("Text") +
   ggtitle("Type-Token Ratio per text")
  
-ttr_top
-ttr_bottom
-
+kable(cbind(ttr_top,ttr_bottom), caption = "Text with highest and lowest TTR", caption.above = TRUE) %>%
+  kable_styling(bootstrap_options = "bordered") %>%
+  kableExtra::scroll_box(width = "100%", height = "250px")
 ```
 
 ## 4.3 Connections between terms by computing co-occurrence (Link between Words)
@@ -118,7 +118,7 @@ TED.co <- fcm(TED.tk1,
                 context = "document", 
                 tri = FALSE)
 
-kable(TED.co[1:10,1:10], caption = "The example of co-occurrence matrix") %>%
+kable(TED.co[1:10,1:10], caption = "The example of co-occurrence matrix", caption.above = TRUE) %>%
   kable_styling(bootstrap_options = "bordered") %>%
   kableExtra::scroll_box(width = "100%", height = "250px")
 
@@ -135,7 +135,7 @@ index <- TED.freq1 %>%
 
 #then refer them to co occurance table
 x <- TED.co[index$feature, index$feature]
-kable(x[1:10,1:10], caption = "The example of co-occurrence matrix after restricted the frequency larger than 500") %>%
+kable(x[1:10,1:10], caption = "The example of co-occurrence matrix after restricted the frequency larger than 500", caption.above = TRUE) %>%
   kable_styling(bootstrap_options = "bordered") %>%
   kableExtra::scroll_box(width = "100%", height = "250px")
 
