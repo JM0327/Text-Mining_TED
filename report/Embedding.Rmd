@@ -36,11 +36,12 @@ kable(TC,
 ```
 
 ```{r, echo=TRUE, warning=FALSE}
-set.seed(1234)
+# RcppParallel::setThreadOptions(1)
+set.seed(123)
 p <- 2 # word embedding dimension
 TED.glove <- GlobalVectors$new(rank = p,
                                x_max = 10) # x_max is a needed technical option
-TED.we <- TED.glove$fit_transform(TED.coo) # central vectors; speech.glove$components contains the context vectors
+TED.we <- TED.glove$fit_transform(TED.coo, n_threads = 1) # central vectors; speech.glove$components contains the context vectors
 TED.we <- t(TED.glove$components) + TED.we# unique representation
 ```
 
