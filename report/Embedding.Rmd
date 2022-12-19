@@ -15,7 +15,7 @@ In addition to using Latent Semantic Analysis (LSA) and Latent Dirichlet Allocat
 
 ## 7.1 Word Embedding
 
-The objective of word embedding is to learn a representation of words that reflects their co-occurrence patterns. To obtain these co-occurrence patterns, we will utilize the fcm function from the quanteta package. 
+The objective of word embedding is to learn a representation of words that reflects their co-occurrence patterns. To obtain these co-occurrence patterns, we utilize the fcm function from the quanteta package. 
 
 Below, we present a sample of the resulting co-occurrence data. As can be seen, the co-occurrence between the words *artificial* and *intelligence* is relatively high (170), while the co-occurrence between the words *fly* and *intelligence* is considerably lower (0). These patterns are indicative of the relationships between the words in the corpus and will be useful in constructing the word embeddings.
 
@@ -30,9 +30,9 @@ TC <- head(TED.coo) %>%
   select(1:6)
 
 kable(TC,
-      caption = "co-occurrence matrix") %>%
-   kable_styling(bootstrap_options = "bordered") %>%
-   kableExtra::scroll_box(width = "100%", height = "250px")
+      caption = "Co-occurrence matrix") %>%
+   kable_paper() %>%
+   kableExtra::scroll_box(width = "100%", height = "200px")
 ```
 
 ```{r, echo=TRUE, warning=FALSE,results="hide"}
@@ -45,7 +45,7 @@ TED.we <- TED.glove$fit_transform(TED.coo, n_threads = 1) # central vectors; spe
 TED.we <- t(TED.glove$components) + TED.we# unique representation
 ```
 
-In order to visualize the learned word embeddings, we will create two plots. The first plot will depict the vectors of the 100 most frequently used words (i.e., the 100 words with the largest frequencies). The second plot will show all of the words, but only label a subset of them. 
+In order to visualize the learned word embeddings, we create two plots. The first plot depicts the vectors of the 100 most frequently used words (i.e., the 100 words with the largest frequencies). The second plot shows all of the words, but only label a subset of them. 
 
 ```{r, echo=TRUE, warning=FALSE,fig.height = 4}
 index <- textstat_frequency(dfm(TED.tk))[1:100, ]$feature
@@ -60,7 +60,7 @@ Emb_p1 <- ggplot(data.for.plot,
            label = word)) +
   geom_text_repel(max.overlaps = 100)+
   theme_void() +
-  labs(title="map of top100 words")
+  labs(title="Map of top100 words")
 
 TED.we.df <- as.data.frame(TED.we)
 word <- rownames(TED.we.df)
@@ -74,14 +74,14 @@ Emb_p2 <- ggplot(TED.we.df,aes(x=V1,y=V2))+
             hjust = "inward",
             max.overlaps = 100) +
   geom_point(color="grey")+
-  labs(title="map of all words(partially labeled)")
+  labs(title="Map of all words(partially labeled)")
 
 Emb_p1
 
 Emb_p2
 ```
 
-To avoid label overlap between data points in the plots, we will use the geom_text_repel function. Some labels will also be accompanied by a black line, indicating the location of the corresponding data point.
+To avoid label overlap between data points in the plots, we use the geom_text_repel function. Some labels are also accompanied by a black line, indicating the location of the corresponding data point.
 
 The first plot depicts the relationships between frequently used words. It can be seen that words that are close in the embedding space are often used together. For example, the words "robot" and "computer" are close, indicating that they are frequently used together. Similarly, the words "man" and "woman" are close, suggesting that they are also commonly used together.
 
@@ -94,9 +94,9 @@ We now build the document embedding by computing the centroids of the documents.
 ```{r, echo=TRUE, warning=FALSE}
 kable(TED.we[TED.tk[[1]], ],
       col.names = c("dimension1","dimension2"),
-      caption = "word vectors") %>%
-   kable_styling(bootstrap_options = "bordered") %>%
-   kableExtra::scroll_box(width = "100%", height = "250px")
+      caption = "Word vectors") %>%
+   kable_paper() %>%
+   kableExtra::scroll_box(width = "100%", height = "200px")
 ```
 
 
@@ -112,12 +112,13 @@ row.names(TED.de) <- names(TED.tk)
 
 kable(TED.de,
       col.names = c("dimension1","dimension2"),
-      caption = "document vectors") %>%
-   kable_styling(bootstrap_options = "bordered") %>%
-   kableExtra::scroll_box(width = "100%", height = "250px")
-```
+      caption = "Document vectors") %>%
+   kable_paper() %>%
+   kableExtra::scroll_box(width = "100%", height = "200px")
 
-Now, we make the representation of the documents and use different color to represent the document in diffrent category.
+```
+<br>
+We present the representation of the documents and use different color to represent the document in different category.
 ```{r, echo=TRUE, warning=FALSE,fig.height = 4}
 TED.de <- as.data.frame(TED.de)
 TED.de.source <- TED_full %>% 
@@ -136,6 +137,6 @@ ggplot(data=TED.de.source,mapping = aes(
     labels=c("AI","Climate change","Relationships")
   )
 ```
-According to this plot, the documents in the category "AI" and "relationships" covers the largest area of each other. It is possible that the documents in these two categories are more similar when compared with the documents in the category "Climate change".
+According to this plot, the documents in the "AI" and "relationships" categories covers the largest area of each other. It is possible that the documents in these two categories are more similar when compared with the documents in the "Climate change" category.
 
 

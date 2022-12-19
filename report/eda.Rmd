@@ -48,7 +48,7 @@ TED.dfm1 %>%
 
 We can associate the different texts with their most frequent terms. For example, text12 with “people”, “em”, and “ca” and "people" was expected since it is a common term, “em” and "ca" look more specific to this text.
 
-Subsequently, we also would like to investigate the highest TF-IDF terms to observe the specific terms per document (video). Therefore, we present the top 10 highest TF-IDF in documents as shown below. For text12, we notice that "people" does not appear in the text12 anymore as expected. This is because the TF-IDF of "people" is very low since it is not specific to any text. On the other hand, *em* and *ca* are specific terms for text12. We then have a closer look to the text12 and found the dialog between Elon Musk and Chris Anderson, so *em* and *ca* stand for Elon Musk and Chris Anderson, respectively.
+Subsequently, we also would like to investigate the highest TF-IDF terms to observe the specific terms per document (video). Therefore, we present the top 10 highest TF-IDF in documents as shown below. For text12, we notice that "people" does not appear in the text12 anymore as expected. This is because the TF-IDF of "people" is very low since it is not specific to any text. On the other hand, *em* and *ca* are specific terms for text12. We then have a closer look to the text12 and discover the dialog between Elon Musk and Chris Anderson, so *em* and *ca* stand for Elon Musk and Chris Anderson, respectively.
 
 ```{r, echo=TRUE, warning=FALSE,fig.height = 3}
 
@@ -105,8 +105,8 @@ TED.dfm1 %>% textstat_lexdiv() %>%
   ggtitle("Type-Token Ratio per text")
  
 kable(cbind(ttr_top,ttr_bottom), caption = "Text with highest and lowest TTR", caption.above = TRUE) %>%
-  kable_styling(bootstrap_options = "bordered") %>%
-  kableExtra::scroll_box(width = "100%", height = "250px")
+  kable_paper() %>%  
+  kableExtra::scroll_box(width = "100%", height = "200px")
 ```
 
 ## 4.3 Connections between terms by computing co-occurrence (Link between Words)
@@ -119,11 +119,11 @@ TED.co <- fcm(TED.tk1,
                 tri = FALSE)
 
 kable(TED.co[1:10,1:10], caption = "The example of co-occurrence matrix", caption.above = TRUE) %>%
-  kable_styling(bootstrap_options = "bordered") %>%
-  kableExtra::scroll_box(width = "100%", height = "250px")
+  kable_paper() %>%  
+  kableExtra::scroll_box(width = "100%", height = "200px")
 
 ```
-
+<br>
 To read the co-occurrences matrix comfortably, we restrict the analysis to the terms that have a frequency larger than 500.
 
 ```{r, echo=TRUE, warning=FALSE}
@@ -136,12 +136,12 @@ index <- TED.freq1 %>%
 #then refer them to co occurance table
 x <- TED.co[index$feature, index$feature]
 kable(x[1:10,1:10], caption = "The example of co-occurrence matrix after restricted the frequency larger than 500", caption.above = TRUE) %>%
-  kable_styling(bootstrap_options = "bordered") %>%
-  kableExtra::scroll_box(width = "100%", height = "250px")
+  kable_paper() %>%  
+  kableExtra::scroll_box(width = "100%", height = "200px")
 
 ```
-
-We then use the igraph library to create a network object and plot it. Although we restricted the frequency of terms larger than 500, it is still difficult to read the igraph. Therefore, we decide that for less than 4500 co-occurences, there is no link (larger than 4500, there is one link).
+<br>
+We then use the igraph library to create a network object and plot it. Although we restrict the frequency of terms larger than 500, it is still difficult to read the igraph. Therefore, we decide that for less than 4500 co-occurences, there is no link (larger than 4500, there is one link).
 
 From the igraph, we observe that *make*, *thing*, *people* are the central terms that co-occurs a lot with the others as they are not specific words to any texts. Again, due to 3 different topics, we do not expect to see the specific words for each topic in this analysis.
 

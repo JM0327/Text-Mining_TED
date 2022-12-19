@@ -20,17 +20,16 @@ TED <- read_csv(here::here("data/TED.csv")) #330 obs
 views_add <- read_csv(here::here("data/add_details_1.csv")) #310 obs
 
 kable(TED[1:10,], caption = "The example of original TED table") %>%
-   kable_styling(bootstrap_options = "bordered") %>%
-   kableExtra::scroll_box(width = "100%", height = "250px")
+   kable_paper() %>%
+   kableExtra::scroll_box(width = "100%", height = "200px")
 
 kable(views_add[1:10,], caption = "The example of original add_details_1 table") %>%
-   kable_styling(bootstrap_options = "bordered") %>%
-   kableExtra::scroll_box(width = "100%", height = "250px")
+   kable_paper() %>%
+   kableExtra::scroll_box(width = "100%", height = "200px")
+
 ```
-
+<br>
 We then remove any duplicated observations and combine the two tables by matching the "title" column. The resulting table, which we name **TED**, containing 324 observations and 12 variables. However, for the purpose of our analysis, we are only interested in six specific variables: title of videos (title), posting time (posted), topic of videos (cate), the number of likes for videos (likes), transcript (transcript), and the number of views of videos (views_details). Therefore, we select these variables and removed the rest, creating a new table called **TED_sentiment** that would serve as the main table for our sentiment analysis. We also remove the title variable from the **TED** table, as it would not be used in the sentiment analysis.
-
-After performing these operations, we discover that the **TED** table containing 34 missing values (NAs), which we subsequently remove. The resulting **TED** table containing 286 observations, representing 103 videos on AI, 86 videos on Climate change, and 97 videos on Relationships. This table would serve as the basis for our further analyses.
 
 ```{r, echo=TRUE, warning=FALSE}
 # Delete duplicate rows of TED
@@ -57,10 +56,12 @@ TED <- na.omit(TED) #286
 catenum <- data.frame(table(TED$cate))
 colnames(catenum) <- c("Topics", "Count")
 
-kable(catenum[,], caption = "The number of videos per topics") %>%
-   kable_styling(bootstrap_options = "bordered") %>%
-   kableExtra::scroll_box(width = "100%", height = "250px")
+kbl(catenum[,], caption = "The number of videos per topics") %>%
+   kable_paper(bootstrap_options = "striped", full_width = F, position = "float_left") 
+
 ```
+
+After performing these operations, we discover that the **TED** table containing 34 missing values (NAs), which we subsequently remove. The resulting **TED** table containing 286 observations, representing 103 videos on AI, 86 videos on Climate change, and 97 videos on Relationships. This table would serve as the basis for our further analyses.
 
 Subsequently, it turns to data parsing step. We convert posting time, the number of likes, the number of views to be in the appropriate format for further analyses. For example, the posting time for the first video, *"How does artificial intelligence learn?"*, is Mar 2021 in the original TED table. It is converted to be 2021-03-01. 
 
@@ -104,11 +105,11 @@ TED_sentiment <- TED
 TED <- TED %>% select(-title)
 ```
 
-In order to facilitate data analysis, we assigne numerical values to the categories of AI, Climate Change, and Relationships in the TED dataset. The variable **cate** is used to represent these categories, with AI being represented by number 1, Climate Change by number 2, and Relationships by number 3. This allows for easier tracking of the videos in both supervised and unsupervised learning analyses.
+In order to facilitate data analysis, we assign numerical values to the categories of AI, Climate Change, and Relationships in the TED dataset. The variable **cate** is used to represent these categories, with AI being represented by number 1, Climate Change by number 2, and Relationships by number 3. This allows for easier tracking of the videos in both supervised and unsupervised learning analyses.
 
 Due to the limited number of available videos within the selected categories on the TED website, we are unable to gather a larger dataset for unsupervised and supervised learning analyses. In order to increase the number of observations while still avoiding overfitting and striving for a robust model, we decide to set a window of 20 sentences to be equal to one observation. This is based on the observation that the transcript for each video typically contains more than 20 sentences.
 
-We split sentences by using the **tokenize_sentence()** function from the quanteda package and create a new variable, namely **sub cate**. For example, sub_cate of 1.1 indicates that the observation is from the first transcript in the AI category (The first topic). We then created a **text** variable to uniquely identify each text, with the format X.Y.Z indicating the Zth segment of 20 sentences in the Yth transcript of the Xth category. By using this approach, the number of observations increases from 286 to 1,471 and we named this data frame as **TED_full**. To sum up, **TED_full** consists of 1,471 observations with 7 variables which are posted, cate, like, view, subcate, text, tanscript. 
+We split sentences by using the **tokenize_sentence()** function from the quanteda package and create a new variable, namely **sub cate**. For example, sub_cate of 1.1 indicates that the observation is from the first transcript in the AI category (The first topic). We then create a **text** variable to uniquely identify each text, with the format X.Y.Z indicating the Zth segment of 20 sentences in the Yth transcript of the Xth category. By using this approach, the number of observations increases from 286 to 1,471 and we name this data frame as **TED_full**. To sum up, **TED_full** consists of 1,471 observations with 7 variables which are posted, cate, like, view, subcate, text, transcript. 
 
 
 ```{r, echo=TRUE, warning=FALSE}
@@ -161,20 +162,20 @@ TED_full$tanscript <- trim_ws(TED_full$tanscript)
 # Our final table = TED_full consisting of 1471 instances
 
 kable(TED_full[10,], caption = "The example of  TED_full table") %>%
-  kable_styling(bootstrap_options = "bordered") %>%
-  kableExtra::scroll_box(width = "100%", height = "250px")
+  kable_paper() %>%
+  kableExtra::scroll_box(width = "100%", height = "200px")
 
 ```
 
 ## 3.2 Tokenization
 
-We tokenized our transcript by the quanteda package aiming to receive Document-Term Matrix and TFIDF matrix. In this section, we performed the tokenization twice. First, we tokenized **TED**, which consists of 286 videos/observations, to gain access into hidden insights each video and to observe the similarity and dissimilarity of each video. Second, we tokenized **TED_full**, which consists of 1,471 instances, for unsupervised and supervised learning analyses.
+We tokenize our transcript by the quanteda package aiming to receive Document-Term Matrix and TFIDF matrix. In this section, we perform the tokenization twice. First, we tokenize **TED**, which consists of 286 videos/observations, to gain access into hidden insights each video and to observe the similarity and dissimilarity of each video. Second, we tokenize **TED_full**, which consists of 1,471 instances, for unsupervised and supervised learning analyses.
 
 ### 3.2.1 Tokenization from TED 
 
-We applied **corpus()** and **tokens()** functions to the tanscript variable to remove numbers, all characters in the "punctuation", symbols, and separators. We then removed stop words from the SMART information retrieval system in English (571 words) and also deleted 2 more words, applaud and laughter, that they appear often in our transcript as sound representation. Sound representation in a transcript is one of the translated functionality of TED meant to enable deaf and hard-of-hearing viewers to understand all the non-spoken auditory information. Afterward, we performed lemmatization and named the data frame as **TED.tk1**.
+We apply **corpus()** and **tokens()** functions to the transcript variable to remove numbers, all characters in the "punctuation", symbols, and separators. We then remove stop words from the SMART information retrieval system in English (571 words) and also delete 2 more words, applaud and laughter, that they appear often in our transcript as sound representation. Sound representation in a transcript is one of the translated functionality of TED meant to enable deaf and hard-of-hearing viewers to understand all the non-spoken auditory information. Afterward, we perform lemmatization and name the data frame as **TED.tk1**.
 
-To obtain the Document-Term Matrix and the TFIDF matrix, we used **dfm()** and **dfm_tfidf()** functions, respectively. The first 10 terms and 10 documents (videos) are shown below.
+To obtain the Document-Term Matrix (DTM) and the TFIDF matrix, we use **dfm()** and **dfm_tfidf()** functions, respectively. The first 10 terms and 10 documents (videos) are shown below.
 
 ```{r, echo=TRUE, warning=FALSE}
 # Quanteda
@@ -199,16 +200,16 @@ TED.tk1 <- tokens_replace(
 
 TED.dfm1 <- dfm(TED.tk1)
 kable(TED.dfm1[1:10,1:10], caption = "The example of Document-Term Matrix") %>%
-  kable_styling(bootstrap_options = "bordered") %>%
-  kableExtra::scroll_box(width = "100%", height = "250px")
+  kable_paper() %>%
+  kableExtra::scroll_box(width = "100%", height = "200px")
 
 TED.tfidf1 <- dfm_tfidf(TED.dfm1)  
 kable(TED.tfidf1[1:10,1:10], caption = "The example of TFIDF matrix") %>%
-  kable_styling(bootstrap_options = "bordered") %>%
-  kableExtra::scroll_box(width = "100%", height = "250px")
+  kable_paper() %>%
+  kableExtra::scroll_box(width = "100%", height = "200px")
 
 ```
-
+<br>
 Additionally, the frequencies of terms can simply be obtained using **textstat_frequency()**. The terms are ranked by their frequency (rank = 1 for the most frequent), then plotted versus its rank as shown below to illustrate Zipf's law. According to the Zipf's law, *the frequency that a word appears is inversely proportional to its rank*, we notice that the pattern of the relationships of frequency and rank follows Zipf's law.
 
 We then present the scatter plot on a log10-log10 scale. Although we expect to see a linear relationship from this plot, we observe some deviation from Zipf's law on the right hand side of the chart (high ranks/ low frequency words). The reason of the deviation might be that the text we are analyzing is not a representative sample of the language. For example, the text might contain a lot of technical terms. In other words, there are many specific terms.
@@ -233,12 +234,13 @@ zipf_log <- ggplot(TED.freq1,
 
 (zipf_orig+zipf_log)+
   plot_layout(guides = "collect") 
+
 ```
 
 
 ### 3.2.2 Tokenization from TED_full for unsupervised and supervised learning analyses
 
-In this section, we repeated the same steps of the tokenization as previous section. Afterwards, we stored the table and named it as **TED.tk**. We also present the first 10 terms and 10 documents of the Document-Term Matrix and the TFIDF matrix shown below.
+In this section, we repeat the same steps of the tokenization as previous section. Afterwards, we store the table and name it as **TED.tk**. We also present the first 10 terms and 10 documents of the Document-Term Matrix and the TFIDF matrix shown below.
 ```{r, echo=TRUE, warning=FALSE}
 # Quanteda
 TED.cp <- corpus(TED_full$tanscript)
@@ -262,39 +264,16 @@ TED.tk <- tokens_replace(
 
 TED.dfm <- dfm(TED.tk)
 kable(TED.dfm[1:10,1:10], caption = "The example of Document-Term Matrix") %>%
-  kable_styling(bootstrap_options = "bordered") %>%
-  kableExtra::scroll_box(width = "100%", height = "250px")
+  kable_paper() %>%
+  kableExtra::scroll_box(width = "100%", height = "200px")
 
 TED.tfidf <- dfm_tfidf(TED.dfm)  
 kable(TED.tfidf[1:10,1:10], caption = "The example of TFIDF matrix") %>%
-  kable_styling(bootstrap_options = "bordered") %>%
-  kableExtra::scroll_box(width = "100%", height = "250px")
+  kable_paper() %>%
+  kableExtra::scroll_box(width = "100%", height = "200px")
 
 ```
 
-To demonstrate the Zipf's law, we again plotted 2 charts which are frequency against its rank and the former chart by applying log10 scale. The results of the 2 charts are similar to the previous ones.
-
-```{r, echo=TRUE, warning=FALSE, fig.height = 4}
-TED.freq <- textstat_frequency(TED.dfm)
-#head(TED.freq, 10)
-
-zipf_orig <- ggplot(TED.freq,
-       aes(x = rank, y = frequency, label = feature)) + 
-  geom_point() + 
-  geom_text_repel() +
-  ggtitle("The relationships of frequency and rank")
-
-zipf_log <- ggplot(TED.freq,
-       aes(x = rank, y = frequency, label = feature)) + 
-  geom_point() + 
-  geom_text_repel() +
-  scale_x_log10() +
-  scale_y_log10() +
-  ggtitle("The relationships of frequency and rank on log10-log10 scale") 
-
-(zipf_orig+zipf_log)+
-  plot_layout(guides = "collect") 
-```
 
 
 

@@ -7,8 +7,7 @@ output:
     toc: true
     toc_float: true
     code_folding: hide
-    theme:
-      bootswatch: lux
+    theme: paper
 ---
 <style>
 body {

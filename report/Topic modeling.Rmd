@@ -16,42 +16,39 @@ Topic modeling is a method for discovering the latent themes or topics that exis
 ## 6.1 LSA
 
 ### 6.1.1 LSA on TF
-First, we build the LSA object and use 4 dimensions. Latent Semantic Analysis(LSA) decomposes this DTM (TED.dfm) into 3 matrices ($M = U\Sigma V^{t}$), centred around 4 topics. We check the 3 matrices: *U:Doc-topic sim*, *Σ:Topic strength* and *V:Terms-topic sim*. 
+First, we build the LSA object with 4 dimensions. Latent Semantic Analysis(LSA) decomposes the DTM (TED.dfm) into 3 matrices ($M = U\Sigma V^{t}$), centred around 4 topics. We examine the 3 matrices: **U:Doc-topic sim**, **Σ:Topic strength** and **V:Terms-topic sim**. 
 
-The *Doc-topic sim* table below shows the link between each text and each topic. For example, text1 most relevant to dimension 2.
+The **Doc-topic sim** table below shows the link between each text and each category. For example, text1 is most relevant to dimension 2.
 
 ```{r, echo=TRUE, warning=FALSE}
 TED.lsa <- textmodel_lsa(x = TED.dfm,nd = 4)
 kable(TED.lsa$docs, 
       col.names = c("dimension1","dimension2","dimension3","dimension4"),
       caption = "Doc-topic sim.(LSA on TF)") %>%
-   kable_styling(bootstrap_options = "bordered") %>%
-   kableExtra::scroll_box(width = "100%", height = "250px")
-```
-
-The *Topic strength* table below represents the strength of each topic. 
-```{r , echo=TRUE, warning=FALSE}
-CN <- c("dimension1","dimension2","dimension3","dimension4")
-Topic_Strength <- data.frame(CN,TED.lsa$sk)
-kable(Topic_Strength,
-      col.names= c("Dimension","Topic strength"),
-      caption = "Topic strength(LSA on TF)")%>%
-   kable_styling(bootstrap_options = "bordered") %>%
+   kable_paper() %>%
    kableExtra::scroll_box(width = "100%", height = "200px")
 ```
 
+<br>
+The **Topic strength** table below represents the strength of each dimension. 
+```{r , echo=TRUE, warning=FALSE}
+CN <- c("dimension1","dimension2","dimension3","dimension4")
+Topic_Strength <- data.frame(CN,TED.lsa$sk)
+colnames(Topic_Strength) <- c("Dimension", "Topic strength")
 
-The *Terms-topic sim.* table below shows the link between each term and each topic. For example, the term "artificial" most relevant to dimension 2.
+head(Topic_Strength) %>% flextable() %>% add_header_lines("Topic strength by dimension") %>% autofit()
+
+```
+<br>
+The **Terms-topic sim.** table below shows the link between each term and each dimension. For example, the term "artificial" is most relevant to dimension 2.
 ```{r, echo=TRUE, warning=FALSE}
 kable(head(TED.lsa$features,10), 
       col.names = c("dimension1","dimension2","dimension3","dimension4"),
       caption = "Terms-topic sim.(LSA on TF)") %>%
-   kable_styling(bootstrap_options = "bordered") %>%
-   kableExtra::scroll_box(width = "100%", height = "250px")
+   kable_paper() %>%
+   kableExtra::scroll_box(width = "100%", height = "200px")
 ```
-
-
-
+<br>
 The first dimension of LSA is often correlated with the document length and the frequency of the term. This phenomenon can be visualized through the construction of a scatter plot between the document length and the first dimension of the latent semantic space. 
 
 ```{r, echo=TRUE, warning=FALSE ,fig.height = 3}
@@ -69,9 +66,9 @@ data.frame(doc.freq,
   )
 ```
 
-We then examined the top words in dimension 2, 3, and 4. For each dimension, we look at the five terms with the largest values and the five ones with the lowest value (i.e., largest negative value).
+We then examine the top words in dimension 2, 3, and 4. For each dimension, we look at the five terms with the largest values and the five ones with the lowest values (i.e., largest negative value).
 
-According to the table below, Dimension 2 is associated positively with word like "ai", "human", "robot", "machine" ,"datum", and negatively associated with "feel", "climate", "life", "love", "people".
+According to the table below, Dimension 2 is associated positively with "ai", "human", "robot", "machine" ,"datum", and negatively associated with "feel", "climate", "life", "love", "people".
 ```{r, echo=TRUE, warning=FALSE}
 n.terms <- 5
 ## For Dimension 2
@@ -84,36 +81,36 @@ w.top.d3 <- c(w.order[1:n.terms], rev(rev(w.order)[1:n.terms]))
 w.order <- sort(TED.lsa$features[,4], decreasing = TRUE)
 w.top.d4 <- c(w.order[1:n.terms], rev(rev(w.order)[1:n.terms]))
 
-kable(w.top.d2,
-      col.names = "value",
-      caption = "Dimension 2(LSA on TF)")%>%
-   kable_styling(bootstrap_options = "bordered") %>%
-   kableExtra::scroll_box(width = "100%", height = "200px")
-```
+w.top.d2 <- t(w.top.d2)
+kable(w.top.d2, 
+      caption = "Top 5 and bottom 5 of Dimension2 (LSA on TF)") %>%
+   kable_paper()
 
-The below table shows that Dimension 3 is associated positively with word like "people", "love", "robot", "fell" ,"life", and negatively associated with "forest", "year", "energy", "carbon", "climate".
+```
+<br>
+The below table shows that Dimension 3 is associated positively with "people", "love", "robot", "fell" ,"life", and negatively associated with "forest", "year", "energy", "carbon", "climate".
 
 ```{r, echo=TRUE, warning=FALSE}
-kable(w.top.d3,
-      col.names = "value",
-      caption = "Dimension 3(LSA on TF)")%>%
-   kable_styling(bootstrap_options = "bordered") %>%
-   kableExtra::scroll_box(width = "100%", height = "200px")
-```
 
-The below table shows that Dimension 4 is associated positively with word like "robot", "thing", "rule", "move" ,"start", and negatively associated with "datum", "human", "love", "people", "ai".
+w.top.d3 <- t(w.top.d3)
+kable(w.top.d3, 
+      caption = "Top 5 and bottom 5 of Dimension3 (LSA on TF)") %>%
+   kable_paper()
+
+```
+<br>
+The below table shows that Dimension 4 is associated positively with "robot", "thing", "rule", "move" ,"start", and negatively associated with "datum", "human", "love", "people", "ai".
 
 ```{r, echo=TRUE, warning=FALSE}
-kable(w.top.d4,
-      col.names = "value",
-      caption = "Dimension 4(LSA on TF)")%>%
-   kable_styling(bootstrap_options = "bordered") %>%
-   kableExtra::scroll_box(width = "100%", height = "200px")
+
+w.top.d4 <- t(w.top.d4)
+kable(w.top.d4, 
+      caption = "Top 5 and bottom 5 of Dimension4 (LSA on TF)") %>%
+   kable_paper() 
+
 ```
-
-
-
-In order to check the relation between LSA and category of text, we combine the LSA result with the category of document and represent every text on these two following plots. 
+<br>
+In order to confirm the relation between LSA and categories of text, we combine the LSA result with the categories of text and represent every text on these two following plots. 
 ```{r, echo=TRUE, warning=FALSE, fig.height = 4}
 
 TED.lsa.source <- TED_full %>% 
@@ -126,7 +123,7 @@ LSA_p1 <- ggplot(data=TED.lsa.source,mapping = aes(
   geom_point()+
   labs(x = "dimension2",
        y = "dimension3",
-       title = "Distribution of texts in different category",
+       title = "Distribution of texts in different categories",
        subtitle = "LSA(TF) dimension 2 and 3")+
   scale_colour_discrete(
     name="Category",
@@ -142,7 +139,7 @@ LSA_P2 <- ggplot(data=TED.lsa.source,mapping = aes(
   geom_point()+
   labs(x = "dimension3",
        y = "dimension4",
-       title = "Distribution of texts in different category",
+       title = "Distribution of texts in different categories",
        subtitle = "LSA(TF):dimension 3 and 4")+
   scale_colour_discrete(
     name="Category",
@@ -155,47 +152,44 @@ LSA_P2 <- ggplot(data=TED.lsa.source,mapping = aes(
   plot_layout(guides = "collect") & theme(legend.position = 'bottom')
 ```
 
-Left plot:x-axis is dimension 2 and y-axis is dimension3.
-According to this plot, most of the texts of the "Climate change" category are negatively associated with dimension3. Most of the texts of the "Relationships" category are positively associated with dimension3. And most of the category "AI" are positively associated with dimension2.
+From the left hand side plot, x-axis represents dimension 2 and y-axis represents dimension3. According to this plot, the "Climate change" category is negatively associated with dimension3 while, the "Relationships" category is positively associated with dimension3. Additionally, the "AI" category is positively associated with dimension2.
 
-Right plot:x-axis is dimension 3 and y-axis is dimension4.
-According to this plot, most texts of the "AI" category are positively associated with dimension4. The "Climate change" and the "Relationships" categories seem to be not associated with dimension4.
+For the right hand side plot, x-axis represents dimension 3 and y-axis represents dimension4. According to this plot, the "Climate change" and the "Relationships" categories seem to be not associated with dimension4. However, the "AI" category is associated with dimension 4, although there is some variability in the direction of this association.
 
 ### 6.1.2 LSA on TF-IDF
-Repeat the LSA with the TF-IDF as DTM. Check whether the weighted frequency can make the LSA results better interpret texts.
+We also perform the LSA with the TF-IDF matrix to examine whether the weighted frequency can improve the interpretation.
+
+Regarding the Doc-topic sim. table, which demonstrates the relationship between each text and each dimension. For example, text3 is most relevant to dimension 3.
 ```{r, echo=TRUE, warning=FALSE}
 TED.lsa2 <- textmodel_lsa(TED.tfidf, nd = 4) 
 
 kable(TED.lsa2$docs, 
       col.names = c("dimension1","dimension2","dimension3","dimension4"),
       caption = "Doc-topic sim.(LSA on TF-IDF)") %>%
-   kable_styling(bootstrap_options = "bordered") %>%
-   kableExtra::scroll_box(width = "100%", height = "250px")
-```
-This Doc-topic sim. table shows the link between each text and each topic. For example, text3 most relevant to dimension 3(topic 3).
-
-```{r, echo=TRUE, warning=FALSE}
-Topic_Strength2 <- data.frame(CN,TED.lsa2$sk)
-kable(Topic_Strength2,
-      col.names= c("Dimension","Topic strength"),
-      caption = "Topic strength(LSA on TF-IDF)")%>%
-   kable_styling(bootstrap_options = "bordered") %>%
+   kable_paper() %>%
    kableExtra::scroll_box(width = "100%", height = "200px")
 ```
-This Topic strength table represent the strength of each dimension(topic). For example, dimension 4 has the smallest strength.
+<br>
+This Topic strength table represents the strength of each dimension. For example, dimension 4 has the smallest strength.
+```{r, echo=TRUE, warning=FALSE}
+Topic_Strength2 <- data.frame(CN,TED.lsa2$sk)
+colnames(Topic_Strength2) <- c("Dimension", "Topic strength")
 
-
+head(Topic_Strength2) %>% flextable() %>% add_header_lines("Topic strength by dimension") %>% autofit()
+  
+```
+<br>
+This Terms-topic sim. table shows the link between each term and each dimension. For example, the terms "artificial" and "intelligence" are both most relevant to dimension 3.
 ```{r, echo=TRUE, warning=FALSE}
 kable(head(TED.lsa2$features,10), 
       col.names = c("dimension1","dimension2","dimension3","dimension4"),
       caption = "Terms-topic sim.(LSA on TF-IDF)") %>%
-   kable_styling(bootstrap_options = "bordered") %>%
-   kableExtra::scroll_box(width = "100%", height = "250px")
+   kable_paper() %>%
+   kableExtra::scroll_box(width = "100%", height = "200px")
 ```
-This Terms-topic sim. table shows the link between each term and each topic. For example, the terms "artificial" and "intelligence" are both most relevant to dimension 3(topic 3).
+<br>
 
-
-We also check the top words for dimension2, 3, and 4 of LSA on TF-IDF.
+We also would like to see the top words for dimension2, 3, and 4 of LSA on TF-IDF.
 ```{r, echo=TRUE, warning=FALSE}
 ## For Dimension 2
 w2.order <- sort(TED.lsa2$features[, 2],decreasing = TRUE)
@@ -207,34 +201,37 @@ w2.top.d3 <- c(w2.order[1:n.terms], rev(rev(w2.order)[1:n.terms]))
 w2.order <- sort(TED.lsa2$features[, 4], decreasing = TRUE)
 w2.top.d4 <- c(w2.order[1:n.terms], rev(rev(w2.order)[1:n.terms]))
 
-kable(w2.top.d2,
-      col.names = "value",
-      caption = "Dimension 2(LSA on TF-IDF)")%>%
-   kable_styling(bootstrap_options = "bordered") %>%
-   kableExtra::scroll_box(width = "100%", height = "200px")
+w2.top.d2 <- t(w2.top.d2)
+kable(w2.top.d2, 
+      caption = "Top 5 and bottom 5 of Dimension2 (LSA on TF-IDF)") %>%
+   kable_paper()
+
 ```
-For this LSA, dimension 2 is associated positively with word like "forest", "carbon", "climate", "emission" ,"energy", and negatively associated with "human", "computer", "machine", "ai", "robot".
+<br>
+For this LSA, dimension 2 is associated positively with "forest", "carbon", "climate", "emission" ,"energy", and negatively associated with "human", "computer", "machine", "ai", "robot".
 
 ```{r, echo=TRUE, warning=FALSE}
-kable(w2.top.d3,
-      col.names = "value",
-      caption = "Dimension 3(LSA on TF-IDF)")%>%
-   kable_styling(bootstrap_options = "bordered") %>%
-   kableExtra::scroll_box(width = "100%", height = "200px")
+w2.top.d3 <- t(w2.top.d3)
+kable(w2.top.d3, 
+      caption = "Top 5 and bottom 5 of Dimension3 (LSA on TF-IDF)") %>%
+   kable_paper()
+
 ```
-Dimension 3 is associated positively with word like "regret", "sex", "woman", "love" ,"man", and negatively associated with "datum", "machine", "rule", "ai", "robot".
+<br>
+Dimension 3 is associated positively with "regret", "sex", "woman", "love" ,"man", and negatively associated with "datum", "machine", "rule", "ai", "robot".
 
 ```{r, echo=TRUE, warning=FALSE}
-kable(w2.top.d4,
-      col.names = "value",
-      caption = "Dimension 4(LSA on TF-IDF)")%>%
-   kable_styling(bootstrap_options = "bordered") %>%
-   kableExtra::scroll_box(width = "100%", height = "200px")
+
+w2.top.d4 <- t(w2.top.d4)
+kable(w2.top.d4, 
+      caption = "Top 5 and bottom 5 of Dimension4 (LSA on TF-IDF)") %>%
+   kable_paper()
+
 ```
-Dimension 4 is associated positively with word like "robot", "rule", "bee", "seaweed" ,"coral", and negatively associated with "machine", "human", "company", "datum", "ai".
+<br>
+Dimension 4 is associated positively with "robot", "rule", "bee", "seaweed" ,"coral", and negatively associated with "machine", "human", "company", "datum", "ai".
 
-
-We also check the relation between this LSA result and category of text, we combine the LSA result with the category of document and represent every text on these two following plots. 
+Afterwards, we would like to see the relation between this LSA result and category of text. Therefore, we combine the LSA result with the category of text and represent every text on these two following plots. 
 ```{r, echo=TRUE, warning=FALSE,fig.height = 4}
 TED.lsa2.source <- TED_full %>% 
   select(2) %>% cbind(as.data.frame(TED.lsa2$docs))
@@ -246,7 +243,7 @@ LSA_p3 <- ggplot(data=TED.lsa2.source,mapping = aes(
   geom_point()+
   labs(x = "dimension2",
        y = "dimension3",
-       title = "Distribution of texts in different category",
+       title = "Distribution of texts in different categories",
        subtitle = "LSA(TF-IDF) dimension 2 and 3")+
   scale_colour_discrete(
     name="Category",
@@ -261,7 +258,7 @@ LSA_p4 <- ggplot(data=TED.lsa2.source,mapping = aes(
   geom_point()+
   labs(x = "dimension3",
        y = "dimension4",
-       title = "Distribution of texts in different category",
+       title = "Distribution of texts in different categories",
        subtitle = "LSA(TF-IDF) dimension 3 and 4")+
   scale_colour_discrete(
     name="Category",
@@ -273,15 +270,12 @@ LSA_p4 <- ggplot(data=TED.lsa2.source,mapping = aes(
   plot_layout(guides = "collect") & theme(legend.position = 'bottom')
 ```
 
-Left plot:x-axis is dimension 2 and y-axis is dimension3.
-According to this plot, most of the texts of category "Climate change" are positively associated with dimension2. Most of the texts of category "Relationships" are positively associated with dimension3. And most of the category "AI" are negatively associated with dimension2 and dimension3.
+From the left hand side plot:x-axis represents dimension 2 and y-axis represents dimension3. According to this plot, the "Climate change" category is positively associated with dimension2 while, the "Relationships" category is positively associated with dimension3. Moreover, the "AI" category is negatively associated with dimension2 and dimension3.
 
-Right plot:x-axis is dimension 3 and y-axis is dimension4.
-According to this plot, It appears that a significant portion of the texts in the "AI" category are associated with dimension 4, although there is some variability in the direction of this association. It is not immediately clear from this plot alone what may be driving this pattern
-
+From the right hand side plot:x-axis represents dimension 3 and y-axis represents dimension4. According to this plot, It appears that a significant portion of the texts in the "AI" category are associated with dimension 4, although there is some variability in the direction of this association. It is not immediately clear from this plot alone what may be driving this pattern
 
 ## 6.2 LDA
-We now turn to Latent Dirichlet Association (LDA). LDA is a Bayesian model for topic modeling: generative model. It is also to discover topics in a collection of documents. For the illustration, we will make 4 topics again.
+We now turn to Latent Dirichlet Association (LDA). LDA is a Bayesian model for topic modeling: generative model. It is also to discover topics in a collection of documents. For the illustration, we will perform 4 topics again.
 ```{r, echo=TRUE, warning=FALSE}
 TED.LDA <- LDA(
   convert(TED.dfm, to = "topicmodels"),
@@ -289,26 +283,34 @@ TED.LDA <- LDA(
   control = list(seed = 123))
 ```
 
-
-First, we examined the top 5 words in each dimension. For example, the top 5 terms for topic 1 are "climate", "year", "make", "change" and "energy".
+First, we examine the top 5 words in each dimension. For example, the top 5 terms for topic 1 are "climate", "year", "make", "change" and "energy". 
 ```{r, echo=TRUE, warning=FALSE}
-kable(topicmodels::terms(TED.LDA, 5),
-      caption = "Top5 terms for each topic")%>%
-   kable_styling(bootstrap_options = "bordered") %>%
-   kableExtra::scroll_box(width = "100%", height = "200px")
+top5lda <- as.data.frame(topicmodels::terms(TED.LDA, 5))
+
+head(top5lda) %>% flextable() %>% add_header_lines("Top5 terms for each topic") %>% autofit()
+
+```
+<br>
+In addition, we can observe that Dimension1 has the highest topic strength.
+```{r, echo=TRUE, warning=FALSE}
+
+colnames(Topic_Strength2) <- c("Dimension", "Topic strength")
+
+head(Topic_Strength2) %>% flextable() %>% add_header_lines("Topic strength by dimension") %>% autofit()
+
 ```
 
-Then, we created a table to show the number of documents in each dimension. For example, topic 3 has the highest number of documents(439). 
+<br>
+Then, we create a table to show the number of documents in each dimension. For example, topic 3 has the highest number of documents (439 documents). 
 ```{r, echo=TRUE, warning=FALSE}
-topicmodels::topics(TED.LDA)%>% 
-  table() %>% 
-  kable(caption = "Top5 terms for each topic",
-        col.names = c("Topic", "number of documents")) %>%
-  kable_styling(bootstrap_options = "bordered") %>%
-  kableExtra::scroll_box(width = "100%", height = "200px")
-```
+ldatable <- as.data.frame(topicmodels::topics(TED.LDA) %>% table())
+colnames(ldatable) <- c("Topic", "Number of documents")
 
-Then we applied the topic_diagnostics function to diagnose the *prominence*, *coherence* and *exclusivity* of each dimension.
+head(ldatable) %>% flextable() %>% add_header_lines("Top5 terms for each topic") %>% autofit()
+
+```
+<br>
+Subsequently, we applied the topic_diagnostics function to diagnose the *prominence*, *coherence* and *exclusivity* of each dimension.
 ```{r, echo=TRUE, warning=FALSE}
 td <- topic_diagnostics(
   topic_model = TED.LDA, 
@@ -316,11 +318,12 @@ td <- topic_diagnostics(
 
 kable(td,
       caption = "Topic diagnostics")%>%
-   kable_styling(bootstrap_options = "bordered") %>%
+   kable_paper() %>%
    kableExtra::scroll_box(width = "100%", height = "200px")
-```
 
-Based on the analysis conducted, it appears that Topic 3 has the highest prominence among the identified topics. Additionally, the coherence of Topic 4 was found to be the highest, while the coherence of Topic 1 was the lowest. In terms of exclusivity, it was observed that Topic 1 had the highest exclusivity, while Topic 4 had the lowest exclusivity. These findings suggest that the characteristics of the identified topics vary in terms of their prominence, coherence, and exclusivity. 
+```
+<br>
+Based on the analysis conducted, it appears that Topic 3 has the highest prominence among the identified topics. Additionally, the coherence of Topic 4 is found to be the highest, while the coherence of Topic 1 is the lowest. In terms of exclusivity, it is observed that Topic 1 has the highest exclusivity, while Topic 4 has the lowest exclusivity. These findings suggest that the characteristics of the identified topics vary in terms of their prominence, coherence, and exclusivity. 
 
 
 ```{r, echo=TRUE, warning=FALSE}
@@ -333,6 +336,7 @@ beta.long %>%
   top_n(15, beta) %>% 
   ggplot(aes(reorder_within(term, beta, topic), beta)) + 
   geom_col(show.legend = FALSE) +
+  ggtitle("Topic-term probabilities (Phi's)") +
   coord_flip()+
   facet_wrap(~ topic, scales = "free_y") +
   scale_x_reordered() + 
@@ -342,10 +346,10 @@ beta.long %>%
     axis.text.x = element_text(size = 8),
     strip.text = element_text(size = 8))
 ```
-Topic1 focus on terms like "climate", "change", "energy", "water". 
-Topic2 focus on terms like"people", "ai", "work", "technology". 
-Topic3 focus on terms like"love", "life", "woman", "relationship". 
-Topic4 focus on terms like "robot", "thing", "brain", "human". 
+Topic1 focus on "climate", "change", "energy", "water". 
+Topic2 focus on "people", "ai", "work", "technology". 
+Topic3 focus on "love", "life", "woman", "relationship". 
+Topic4 focus on "robot", "thing", "brain", "human". 
 
 ```{r, echo=TRUE, warning=FALSE,fig.height = 4}
 
@@ -360,6 +364,7 @@ gamma.long$cate<-factor(gamma.long$cate,
                        labels = c("AI","Climate change","Relationships"))
 
 gamma.long %>% ggplot(mapping = aes(x=document,y=gamma,fill=cate))+
+  ggtitle("Topic-Document probabilities (Theta’s)") +
   geom_col()+
   coord_flip() + 
   facet_wrap(~topic,ncol = 4)
@@ -367,7 +372,5 @@ gamma.long %>% ggplot(mapping = aes(x=document,y=gamma,fill=cate))+
   
 ```
 
-The charts above show that the *Climate change* related documents mainly talk about Topic 1. 
-The *Relationships* related documents mainly talk about Topic3. 
-The *AI* related documents mainly talk about Topic 2 and Topic4. 
+The charts above show that the *Climate change* related documents mainly talk about Topic 1 while, the *Relationships* related documents mainly talk about Topic3. In addition, the *AI* related documents mainly talk about Topic 2 and Topic4. 
 

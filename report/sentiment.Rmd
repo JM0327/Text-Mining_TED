@@ -9,11 +9,11 @@ source(here::here("scripts/setup.R"))
 
 # 5. Sentiment analysis  
 
-In this section, we employed two dictionaries, AFINN and NRC, and the Valence-Shifters method to conduct sentiment analysis on the transcripts of each video, which means we don't split the transcript by every 20 sentences. It might be better to see if the sentiment of video would influence the other features. Here, we have following hypothesis:   
+In this section, we employ two dictionaries, AFINN and NRC, and the Valence-Shifters method to conduct sentiment analysis on the transcripts of each video, which means we do not split the transcript by every 20 sentences. It might be better to see if the sentiment of video would influence the other features. Here, we have following hypothesis:   
 
-- The sentiment of videos are related to the corresponding topic. Topic like AI may have more positive sentiment.   
-- The sentiment of videos influence users giving likes. Positive videos usually have more likes.  
-- The sentiment of videos changed over years, since it might related to the corresponding affairs.    
+- The sentiment of videos are related to the corresponding topic. For example, AI topic may have more positive sentiment.   
+- The sentiment of videos influences the number of likes. We expect positive sentiment videos have more likes.  
+- The sentiment of videos has changed over years, since it might be related to the corresponding affairs.    
 
 ```{r, echo=TRUE, warning=FALSE}
 # resume cate, better to interpret 
@@ -34,7 +34,7 @@ TED.tok <- TED.tok %>% filter(word != "laughter" | word != "applaud")
 
 ## 5.1 Sentiment Based    
 
-First, we applied the NRC method to determine the sentiment of the transcripts of each video. As this method is based on sentiment analysis, we focused on examining the relationship between the topics of the videos, as well as the number of likes received by the videos.
+First, we apply the NRC method to determine the sentiment of the transcripts of each video. As this method is based on sentiment analysis, we focus on examining the relationship between the topics of the videos, as well as the number of likes received by the videos.
 
 ```{r, echo=TRUE, warning=FALSE}
 # NRC
@@ -52,9 +52,9 @@ head(TED.sent.nrc, 5) %>% flextable() %>% autofit()
 
 ### 5.1.1 Sentiment v.s. Likes     
 
-Since there are near to 300 transcript (videos), we would like to extract 20 videos with the most likes and the least likes, respectively.         
+Since there are nearly 300 transcripts (videos), we would like to extract 20 videos with the most likes and the least likes, respectively.         
 
-In this part, we applied the NRC method in two different ways, one without scaling and another with re-scaling the sentiment by their length in the documents.
+In this part, we apply the NRC method in two different ways, one without scaling and another with re-scaling the sentiment by their length in the documents.
 
 ```{r,results='hide',message=FALSE, echo=TRUE, warning=FALSE,fig.height = 6.5}
 # Sub data for checking Video likes topic
@@ -91,8 +91,6 @@ taillike20%>%
 ```
 
 
-**Re-scale sentiment by their length:**   
-
 ```{r, echo=TRUE, warning=FALSE,fig.height = 6.5}
 
 # the frequencies of sentiments are computed, by document
@@ -120,7 +118,7 @@ left_join(
   coord_flip()+
   theme(legend.position = 'bottom')+
   labs(y="the number of sentiment")+
-  ggtitle("The sentiment of 20 videos with most likes")
+  ggtitle("The sentiment of 20 videos with most likes (Re-scale sentiment by their length)")
 
 #tail
 left_join(
@@ -141,14 +139,14 @@ left_join(
   coord_flip()+
   theme(legend.position = 'bottom')+
   labs(y="the number of sentiment")+
-  ggtitle("The sentiment of 20 videos with least likes")
+  ggtitle("The sentiment of 20 videos with least likes (Re-scale sentiment by their length)")
 ```
 
-We did not observe any significant differences in the distribution of sentiments, such as positive and anticipation, between videos with high and low numbers of likes. In fact, both positive and anticipation sentiments were present across all videos, with some videos in the top 20 also exhibiting relatively high levels of negative and fear sentiments.       
+We do not observe any significant differences in the distribution of sentiments, such as positive and anticipation, between videos with high and low numbers of likes. In fact, both positive and anticipation sentiments present across all videos, with some videos in the top 20 also exhibiting relatively high levels of negative and fear sentiments.       
 
 ### 5.1.2 Sentiment v.s. Topics    
 
-In order to examine the frequency of sentiment in different topics, We can then compare the results to determine which sentiments are more prevalent in each topic. For example, if we were to analyze the Climate Change topic, we might expect to see a higher frequency of negative or fear-related sentiments, due to the potentially catastrophic consequences of climate change. On the other hand, if we were to analyze the AI topic, we might expect to see a higher frequency of anticipation or positive sentiments, as AI has the potential to bring about many benefits and advancements.
+In order to examine the frequency of sentiment in different topics, We can then compare the results to determine which sentiments are more prevalent in each topic. For example, if we analyze the Climate Change topic, we expect to see a higher frequency of negative or fear-related sentiments, due to the potentially catastrophic consequences of climate change. On the other hand, if we analyze the AI topic, we expect to see a higher frequency of anticipation or positive sentiments, as AI has the potential to bring about many benefits and advancements.
 
 
 ```{r,results='hide',fig.height=4, echo=TRUE, warning=FALSE}
@@ -169,7 +167,7 @@ TED.nrc %>%
 
 ```
 
-As we assume, The topic of AI is often accompanied by positive and anticipation, and we could not ignore trust. Yet, we could see that negative also accounts for a not small part. Contrary to our speculation, the topic of climate change has the same positive sentiment which is also the most frequent part in this topic. And, each sentiment is more evenly distributed in the videos on the topic of relationships, even though the positive sentiment is still the most.    
+As expected, the topic of AI is often accompanied by positive and anticipation, and we could not ignore trust. However, we can see that negative also accounts for a sizable part. Contradict to our speculation, the topic of climate change has the same positive sentiment which is also the most frequent part in this topic. Moreover, each sentiment is more evenly distributed in the videos on the topic of relationships, even though the positive sentiment is still the largest.    
 
 In this case, we begin to assume that positive sentiment actually is the main sentiment in TED talk showing in all videos, based on previous analysis.    
 
@@ -198,7 +196,7 @@ TED.sent.afinn %>%
 
 ```
 
-Here, we calculated the average sentiment score per video. We can see that the number of videos transcript with positive and negative values is very disparate. Thus, TED talk do prefer giving positive videos. And, from the topics perspective, we can see that in every level of sentiment values, there are three kinds of videos.   
+Here, we calculate the average sentiment score per video. We notice that most videos have positive scores. Thus, TED talk do prefer giving positive videos. Additionally, from the topics perspective, it is difficult to distinguish topics from the sentiment scores.   
 
 ```{r, echo=TRUE, warning=FALSE}
 #extract the top and tail videos
@@ -221,7 +219,7 @@ TED.sent.afinn.like %>% ggplot(aes(x=likes,y=Score,color = cate))+
   theme(legend.position = 'bottom')
 ```
 
-Since the number of likes for each video is relatively similar, and only some videos have a large number of likes, we separate each category to observe the distribution of the number of likes and sentiment values. We can observe there are no obvious pattern as well. Compared to AI and Relationship, the sentiment of Climate change talks are widely distributed. No matter in terms of which level of likes, there are videos with various sentiment value.    
+We separate each category to observe the distribution of the number of likes and sentiment values. We can observe that there is no obvious pattern. Compared to AI and Relationship, the sentiment of Climate change topic is widely distributed.     
 
 ### 5.2.2 Sentiment v.s. topics        
 
@@ -236,7 +234,7 @@ TED.sent.afinn.cate %>%
   labs(x="Topics")
 ```
 
-The sentiment values for each topic are relatively similar, and they are all in the upper-middle range - more positive. Among the topics of climate change and AI, the sentiment values of each video are more evenly distributed. AI topic has two outliers with lowest values, the most negative.     
+The sentiment values for each topic are relatively similar, and they are all in the upper-middle range (more positive). We also sport two outliers with large negative from the AI topic.     
 
 ### 5.2.3 Sentiment over years   
 
@@ -256,7 +254,7 @@ TED.sent.afinn.year %>% ggplot(aes(x=posted,y=Score))+
   scale_x_date(date_minor_breaks = "2 day")
 ```
 
-The talks have huge fluctuations over years. Overall, the trend of sentiment value is slightly decreasing, but there are no clear correlation between sentiment value and year. 
+Overall, the trend of sentiment value is slightly decreasing, but there is no clear correlation between sentiment value and year. 
 
 ## 5.3 Using Valence-Shifters   
 
@@ -299,7 +297,7 @@ nagative <- length(negative$title)
 # [1] 31
 ```
 
-First, we can see that the sentiment values are distributed as similar as the one without using Valence-Shifters. After counting the number of videos transcripts with negative values, we found there are `31` videos having negative values before taking negative form into account, and `19` videos having negative values after considering negative form.    
+We conclude that the sentiment values are distributed as similar as the one without using Valence-Shifters. After counting the number of videos transcripts with negative values, we found that there are `31` videos having negative values before applying Valence-Shifters, and `19` videos having negative values after considering Valence-Shifters.    
 
 
 

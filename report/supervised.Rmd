@@ -13,7 +13,7 @@ source(here::here("scripts/setup.R"))
 
 For Supervised Learning, we use the results from the LSA analysis in the previous section and build a prediction model to predict the category using a random forest technique. Reducing the dimensionality of the data can be beneficial when running supervised learning algorithms because it can help to improve the performance of the algorithm by reducing the complexity of the data and to make it easier to interpret the results.
 
-In this section, we will apply the data from LSA on TF in supervised learning.
+In this section, we apply the data from LSA on TF in supervised learning.
 We use the data frame consisting of the category and the “doc” matrix from the LSA. Then, we build the training set index based on a 80/20 split.
 
 ```{r,echo=T, warning= FALSE}
@@ -27,14 +27,17 @@ TED.tr <- TED.lsa.source[index.tr,]
 TED.te <- TED.lsa.source[-index.tr,]
 ```
 
-The data is unbalanced so we need to use the sub-sampling method to balance the data. The below table shows that there are 450, 327 and 401 observations for Topic 1 (AI), 2 (Climate) and 3 (Relationship) respectively.
+The data is unbalanced so we need to use the sub-sampling method to balance the data. The below table shows that there are 450, 327 and 401 observations for Topic 1 (AI), 2 (Climate), and 3 (Relationship) respectively.
 
 ```{r,echo=T, warning= FALSE}
-kable(as.data.frame(table(TED.tr$cate)) %>% rename(Topic = Var1, Count = Freq) , caption = "The number of observations per Topic", caption.above = TRUE) %>%
-   kable_styling(bootstrap_options = "bordered") %>%
-   kableExtra::scroll_box(width = "100%", height = "250px")
-```
 
+numcate <- as.data.frame(table(TED.tr$cate))
+colnames(numcate) <- c("Topic", "Count")
+
+head(numcate) %>% flextable() %>% add_header_lines("The number of observations per Topic") %>% autofit()
+
+```
+<br>
 After sub-sampling, the number of observations for each category is 327.
 
 ```{r,echo=T, warning= FALSE}
@@ -50,11 +53,13 @@ TED.tr.subs <- data.frame(rbind(TED.tr.1[index.1,],
                                 TED.tr.2,
                                 TED.tr.3[index.3,]))
 
-kable(as.data.frame(table(TED.tr.subs$cate)) %>% rename(Topic = Var1, Count = Freq) , caption = "The number of observations per Topic, after sub-sampling", caption.above = TRUE) %>%
-   kable_styling(bootstrap_options = "bordered") %>%
-   kableExtra::scroll_box(width = "100%", height = "250px")
-```
+numcatesub <- as.data.frame(table(TED.tr.subs$cate))
+colnames(numcatesub) <- c("Topic", "Count")
 
+head(numcatesub) %>% flextable() %>% add_header_lines("The number of observations per Topic, after sub-sampling") %>% autofit()
+
+```
+<br>
 We now use a random forest to predict the category from the LSA on TF. Then, the model accuracy is inspected on the test set. The results below show a confusion matrix and the associated statistics.
 
 ```{r,echo=T, warning= FALSE}
@@ -87,8 +92,7 @@ According to the confusion matrix, the accuracy is *0.8089* and the balanced acc
 
 ## 8.2 Supervised learning: LSA on TF-IDF   
 
-Now we use LSA on TF-IDF instead and repeat the same steps with the sub-sampling technique and the random forest model.
-The results below show a confusion matrix and the associated statistics.
+Now we use LSA on TF-IDF instead and repeat the same steps with the sub-sampling technique and the random forest model. The results below show a confusion matrix and the associated statistics.
 
 ```{r,echo=T, warning= FALSE}
 TED.lsa2.source <- cbind(document,TED.lsa2.source)
