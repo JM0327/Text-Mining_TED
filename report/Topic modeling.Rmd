@@ -88,7 +88,7 @@ kable(w.top.d2,
 
 ```
 <br>
-The below table shows that Dimension 3 is associated positively with "people", "love", "robot", "fell" ,"life", and negatively associated with "forest", "year", "energy", "carbon", "climate".
+The below table shows that Dimension 3 is associated positively with "people", "love", "robot", "feel" ,"life", and negatively associated with "forest", "year", "energy", "carbon", "climate".
 
 ```{r, echo=TRUE, warning=FALSE}
 
